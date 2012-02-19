@@ -5,7 +5,13 @@
 
 void  RCC_Configuration(void);
 void  RTC_Configuration(void);
+
 extern void config_PB6_out(void);
+extern void RCC_HSI_enable(void);
+extern void RCC_SYSCLK_HSI(void);
+extern void RCC_LCD_enable(void);
+extern void RCC_PWR_enable(void);
+extern void RCC_SYSCFG_enable(void);
 
 int main() {
 	unsigned int k = 0;  // used for counter
@@ -46,22 +52,18 @@ int main() {
 
 void RCC_Configuration(void)
 {  
-	// Enable HSI Clock
-	RCC_HSICmd(ENABLE);
+	// Enable the High Speed Internal (HSI) Clock
+	RCC_HSI_enable();
 
-	// Wait till HSI is ready
-	while (RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET)
-	{}
+	// Select the HSI for the SYSCLK
+	RCC_SYSCLK_HSI();
 
-	RCC_SYSCLKConfig(RCC_SYSCLKSource_HSI);
+	// Enable comparator clock LCD and PWR mngt
+	RCC_LCD_enable();
+	RCC_PWR_enable();
 
-	RCC_MSIRangeConfig(RCC_MSIRange_6);
-
-	// Enable  comparator clock LCD and PWR mngt
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_LCD | RCC_APB1Periph_PWR, ENABLE);
-
-	// Enable ADC clock & SYSCFG
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+	// Enable SYSCFG
+	RCC_SYSCFG_enable();
 }
 
 
@@ -69,10 +71,6 @@ void RTC_Configuration(void)
 {
 	// Allow access to the RTC
 	PWR_RTCAccessCmd(ENABLE);
-
-	// Reset Backup Domain
-	//RCC_RTCResetCmd(ENABLE);
-	//RCC_RTCResetCmd(DISABLE);
 
 	/* LSE Enable */
 	RCC_LSEConfig(RCC_LSE_ON);
