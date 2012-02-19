@@ -12,6 +12,7 @@ extern void RCC_SYSCLK_HSI(void);
 extern void RCC_LCD_enable(void);
 extern void RCC_PWR_enable(void);
 extern void RCC_SYSCFG_enable(void);
+extern void RTC_access_enable(void);
 
 int main() {
 	unsigned int k = 0;  // used for counter
@@ -70,7 +71,7 @@ void RCC_Configuration(void)
 void RTC_Configuration(void)
 {
 	// Allow access to the RTC
-	PWR_RTCAccessCmd(ENABLE);
+	RTC_access_enable();
 
 	/* LSE Enable */
 	RCC_LSEConfig(RCC_LSE_ON);

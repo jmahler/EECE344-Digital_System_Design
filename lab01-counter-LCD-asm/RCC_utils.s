@@ -37,12 +37,15 @@ RCC_APB1RSTR	EQU 0x18  		; offset from RCC_BASE
 LCD_RST			EQU	0x00000200  ; bit 9
 PWR_RST			EQU	0x10000000  ; bit 28
 
+
 RCC_APB1ENR		EQU 0x24  		; offset from RCC_BASE
 LCD_EN			EQU	0x00000200  ; bit 9
 PWR_EN			EQU	0x10000000  ; bit 28
 
 RCC_APB2ENR		EQU 0x20  		; offset from RCC_BASE
 SYSCFGEN		EQU	0x00000001  ; bit 0
+
+RCC_CSR			EQU 0x34
 
 	; declare public labels for functions
 	PUBLIC RCC_HSI_enable
