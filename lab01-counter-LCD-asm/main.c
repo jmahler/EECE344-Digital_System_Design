@@ -43,7 +43,10 @@ int main() {
 		if (k >= 15e5) {
 			PB6_toggle();
 
-			sprintf(strDisp, "%d", ++count);
+			//sprintf(strDisp, "%d", ++count); // decimal
+			sprintf(strDisp, "%x", ++count);  // hex
+			//sprintf(strDisp, "%o", ++count);  // octal
+
 			LCD_GLASS_Clear();
 			LCD_GLASS_DisplayString( (unsigned char *) strDisp );
 
