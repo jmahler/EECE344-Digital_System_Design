@@ -35,13 +35,24 @@ AHBENR		EQU 0x1C
 
 GPIOB_BASE	EQU 0x40020400
 MODER		EQU 0x00
+IDR			EQU 0x10
+ODR			EQU 0x14
+ODR6		EQU 0x00000040  ; bit 6
+BSRR		EQU 0x18
+BR6			EQU 0x00400000  ; bit 22, set
+BS6			EQU 0x00000040  ; bit 6, clear
 
 ; bit masks
 BIT2		EQU 0x00000002
 BIT12		EQU 0x00001000
 BIT12_13	EQU 0x00003000
 
-	PUBLIC config_PB6_out	  ; our public label for this function
+	; public labels for these functions
+	PUBLIC config_PB6_out
+	PUBLIC PB6_clear
+	PUBLIC PB6_set
+	PUBLIC PB6_toggle
+
 	SECTION .text : CODE (2)  ; Place the following in the .text section
 
 config_PB6_out:
@@ -78,5 +89,31 @@ config_PB6_out:
 	STR r1, [r0, #MODER]	; store the new value
 
 	BX LR					; Return to calling function
+
+PB6_clear:
+	;  GPIOB->BSRRH = 1<<6;  // clear PB6
+	LDR r0, =GPIOB_BASE		; load GPIOB_BASE memory address
+	LDR r2, =BR6			; load the bitmask
+	STR r2, [r0, #BSRR]		; store new value
+
+	BX LR					; Return to calling function
+
+PB6_set:
+	;  GPIOB->BSRRL = 1<<6;  // set PB6
+	LDR r0, =GPIOB_BASE		; load GPIOB_BASE memory address
+	LDR r2, =BS6			; load the bitmask
+	STR r2, [r0, #BSRR]		; store new value
+
+	BX LR					; Return to calling function
+
+PB6_toggle:
+	LDR r0, =GPIOB_BASE		; load GPIOB_BASE memory address
+	LDR r1, [r0, #ODR]		; load value
+	LDR r2, =ODR6			; load the bit mask
+	EOR r1, r1, r2			; toggle the bit
+	STR r1, [r0, #ODR]		; store the new value
+
+	BX LR					; Return to calling function
+
 
 	END						; End of assembly file

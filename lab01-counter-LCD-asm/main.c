@@ -13,6 +13,9 @@ extern void RCC_LCD_enable(void);
 extern void RCC_PWR_enable(void);
 extern void RCC_SYSCFG_enable(void);
 extern void RTC_access_enable(void);
+extern void PB6_set(void);
+extern void PB6_clear(void);
+extern void PB6_toggle(void);
 
 int main() {
 	unsigned int k = 0;  // used for counter
@@ -37,10 +40,8 @@ int main() {
 		k++;
 
 		// Toggle at approximately 1 Hz
-		if (k == 5e5) {
-			GPIOB->BSRRH = 1<<6;  // clear PB6
-		} else if (k >= 1e6) {
-			GPIOB->BSRRL = 1<<6;  // set PB6
+		if (k >= 15e5) {
+			PB6_toggle();
 
 			sprintf(strDisp, "%d", ++count);
 			LCD_GLASS_Clear();
