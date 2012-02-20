@@ -1,19 +1,25 @@
 ;
+; NAME
+; ----
+;
 ; RTC utilities
-;
-; author: Jeremiah Mahler <jmmahler@gmail.com>
-; last modified: 2012-19-Feb
-;
-; These utilites are used for the RTC registers.
 ; 
-; These functions can be used from C as shown
-; below for the RCC_LCD_enable() function.
+; SYNOPSIS
+; --------
 ;
-;	// declare
+;   // Example usage from C
 ;   extern void RTC_access_enable(void):
-;	// call
-;   RTC_access_enable():
-;  
+;	... (for the other functions)
+;
+;	// perform all the steps necessary to
+;	// enable access to the RTC.
+;	RTC_access_enable();
+; 
+; AUTHOR
+; ------
+; Jeremiah Mahler <jmmahler@gmail.com>
+;
+
 
 ; WARNING: These memory addresses are specific to the
 ; STM32L-Discovery (ARM Cortex M3) board and
