@@ -27,13 +27,11 @@
  */
 
 module grey_counter(input clk, output reg [7:0] count);
-	integer n;
+	reg [7:0] n;	// 8-bit counter
 
 	always @(posedge clk) begin
-		if (0 == n) begin
+		if (0 == n)
 			count <= 8'b00000000;
-			n <= 0;
-		end
 		else if (1 == n)
 			count[0] <= 1;
 		else if (2 == n)
@@ -67,14 +65,16 @@ module grey_counter(input clk, output reg [7:0] count);
 		else if (0 == (n - 128) % 256)
 			count[7] <= ~count[7];
 		else begin
-			count <= 8'b00000000;
-			n <= 0;
+			count <= 8'b00000000;  // cat all (Z, X), reset
 		end
 
 		// next count or reset
 		if (n >= 255)
 			n <= 0;
-		else
+		else if (n >= 0)
 			n <= n + 1;
+		else
+			n <= 0;		// catch all (Z, X), reset
 	end
 endmodule
+
