@@ -32,7 +32,7 @@ module grey_counter(input clk, output reg [7:0] count);
 	always @(posedge clk) begin
 		if (0 == n) begin
 			count <= 8'b00000000;
-			n = 0;
+			n <= 0;
 		end
 		else if (1 == n)
 			count[0] <= 1;
@@ -68,7 +68,7 @@ module grey_counter(input clk, output reg [7:0] count);
 			count[7] <= ~count[7];
 		else begin
 			count <= 8'b00000000;
-			n = 0;
+			n <= 0;
 		end
 
 		// next count or reset
