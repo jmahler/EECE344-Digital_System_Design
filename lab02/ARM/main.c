@@ -25,6 +25,24 @@ void main() {
 	uint8_t SPI1_Tx;
 	uint8_t SPI1_Rx;
 
+    /*
+     * states used in main loop
+     *
+     *  SPI_SEND_RECEIVE -> CALC_DISPLAY -> PAUSE -> SPI_SEND_RECEIVE
+     *      (start)                                       (repeat)
+     */
+    enum states {START, SPI_SEND_RECEIVE, CALC_DISPLAY, PAUSE};
+    char state;
+
+    // variables used for calculations
+    uint8_t numA;
+    uint8_t numB;
+    uint8_t res;    // calculation result
+
+#define LOWER_4_BITS 0x0F
+#define UPPER_4_BITS 0xF0
+
+
 	// {{{ ### INITIALIZATION ###
 
 	configure_LCD();
@@ -43,52 +61,91 @@ void main() {
 	k = 0;
 	SPI1_Tx = 0x00;  // initial data to send
 	SPI1_Rx = 0x00;  // received data is stored here
+    state = START;
 	while (1) {
 
-		// If there was an SPI error, turn on the blue LED
-		//if (SPI_I2S_GetFlagStatus(SPI1, SPI_FLAG_CRCERR | SPI_FLAG_MODF | SPI_I2S_FLAG_FRE)) {
-		//	GPIO_SetBits(GPIOB, GPIO_Pin_6);  // turn on blue LED
-		//}
+        if (SPI_SEND_RECEIVE == state) {
+            // If there was an SPI error, turn on the blue LED
+            if (SPI_I2S_GetFlagStatus(SPI1, SPI_FLAG_CRCERR | SPI_FLAG_MODF | SPI_I2S_FLAG_FRE)) {
+                GPIO_SetBits(GPIOB, GPIO_Pin_6);  // turn on blue LED
+            }
 
-		if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY)) {
-			// wait
-			asm("nop");
-		} else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE)) {
-			// a transaction was completed
+            if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY)) {
+                // kill some time
+                asm("nop");
+            } else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE)) {
+                // a transaction was completed
 
-			GPIO_SetBits(GPIOB, GPIO_Pin_5);  // SS_L = 1, disable
+                GPIO_SetBits(GPIOB, GPIO_Pin_5);  // SS_L = 1, disable
 
-			// read the received data from the last transaction
-			//SPI_I2S_ClearFlag(SPI1, SPI_I2S_FLAG_RXNE);
-			SPI1_Rx = SPI_I2S_ReceiveData(SPI1);
-            // wait if needed
-			while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE));
-		} else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE)) {
-			// we can transmit more data
+                // read the received data from the last transaction
+                //SPI_I2S_ClearFlag(SPI1, SPI_I2S_FLAG_RXNE);
+                SPI1_Rx = SPI_I2S_ReceiveData(SPI1);
+                // wait if needed
+                //while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE));
 
-			GPIO_ResetBits(GPIOB, GPIO_Pin_5);  // SS_L = 0, enable
+                // next_state
+                state = CALC_DISPLAY;
+            } else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE)) {
+                // we can transmit more data
 
-			// transmit a byte
-			SPI_I2S_SendData(SPI1, SPI1_Tx);
-			//while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE));
-		}
+                GPIO_ResetBits(GPIOB, GPIO_Pin_5);  // SS_L = 0, enable
 
-		if (++k > 1e5) {
-			k = 0;
+                // transmit a byte
+                SPI_I2S_SendData(SPI1, SPI1_Tx);
+                while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE));
+            }
+        } else if (CALC_DISPLAY == state) {
+            // ** CALCULATIONS **
+
+            // split the 8-bit in to two 4-bit numbers
+            // and store them in an appropriate data type.
+            // bits 1-4
+            numA = 0;
+            numA |= SPI1_Rx & LOWER_4_BITS;
+            // bits 5-8
+            numB = 0;
+            numB |= SPI1_Rx & UPPER_4_BITS;
+            // shift so it is in the lower 4 bits
+            numB = numB >> 4;
+
+            // add the numbers together
+            if (button_pressed()) {
+                // subtract
+                res = numA - numB;
+            } else {
+                // add
+                res = numA + numB;
+            }
+
+            // TODO - overflow, sign?
 
 			// toggle LED on PB6, to show we are alive
 			//if (!button_pressed()) {
 			//	GPIO_ToggleBits(GPIOB, GPIO_Pin_7); // green LED
 			//}
 
+            // ** LCD DISPLAY **
 			// display the recieved byte on the LCD
-			sprintf(str, "%x", SPI1_Rx);
+			sprintf(str, "%x  %x %x", numA, numB, res);
 			LCD_GLASS_Clear();
 			LCD_GLASS_DisplayString((unsigned char *) str);
 
+            // ** return data to CPLD **
 			// setup to echo the received data
 			SPI1_Tx = SPI1_Rx;
-		}
+
+            // next state
+            state = PAUSE;
+        } else {
+            // default PAUSE
+            if (++k > 1e5) {
+                k = 0;
+
+                // next state
+                state = SPI_SEND_RECEIVE;
+            }
+        }
 	}
 	// }}}
 
