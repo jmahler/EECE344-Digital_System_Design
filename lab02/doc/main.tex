@@ -1,0 +1,405 @@
+
+%\documentclass{report}
+\documentclass{article}
+%\documentclass{scrartcl}
+
+%\usepackage{mslapa}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{vmargin}
+\usepackage{tabularx}
+\usepackage{sectsty}
+\usepackage{pbox}
+\usepackage{bigstrut}
+\usepackage{enumerate}
+\usepackage{listings}
+\usepackage{parskip}   % space paragraphs but dont indent
+\usepackage{verbatim}  % \verbatiminput{file}
+\usepackage{gensymb}
+\usepackage{color}
+
+\usepackage{natbib}
+
+%\setpapersize{USletter}
+%\sectionfont{\normalsize}
+%\subsectionfont{\normalsize}
+\setmarginsrb{1.0in}{1.0in}{1.0in}{1.0in}{0in}{0.25in}{0in}{0.20in}
+
+% configure \bigstrut size
+% This configures spacing above and below rows in a tabularx.
+\renewcommand{\bigstrutjot}{2.0\jot}
+
+\providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
+
+\raggedright
+
+\begin{document}
+
+% {{{ Title Page
+
+\title{Lab 2 (EECE 344)}
+%\subtitle{ojiowjef}
+\date{March 27, 2012}
+\author{Jeremiah Mahler}
+
+\maketitle
+% }}}
+
+\tableofcontents
+
+\pagebreak
+
+% {{{ Introduction
+\section{Introduction}
+
+The purpose of the "device" described in this document is mainly
+to orient a user with some of the basic facilities of a STM32L Discovery\citep{UM1079}
+(ARM) board and a Lattice CPLD\cite{EB66}
+\footnote{For the remainder of this document the term "CPLD" will
+be used to refer to the CPLD board and "ARM" will be used to
+refer to the ARM board}.
+It is somewhat of a Rube Goldberg machine for electrical engineers
+in that it does neat things but it does not do much that is useful.
+
+The goal of this document is to describe the "device" in enough
+detail such that a person could re-create the system if given
+an identical parts.
+This document is not an instruction manual and therefore does not
+describe each step that would be required.
+It also does not describe tasks such as how to solder or wire wrap.
+
+The general operation of this device is fairly simple.
+The ARM board is clocked and contains a cpu so it can do the processing
+tasks.
+The CPLD does not use a clock so it can only do logic or sequential tasks.
+These two devices communicate using SPI with the ARM as the master and
+the CPLD as the slave.
+
+The CPLD acts as an interface.
+A bank of switches are used to enter 8-bits of data.
+This data is sent to the ARM when requested.
+And any data it receives (during the full duplex SPI transaction)
+is displayed on to an external bank of LEDs.
+
+The ARM board does more useful computations.
+The 8-bit data it receives is treated as two 4-bit signed numbers
+in 2's compliment form.
+These two numbers can be added or subtracted from each other.
+A user input button provides the switch, when released they are
+added, when depressed they are subtracted.
+Whether this operation resulted in an overflow and whether or
+not the result is signed must also be accounted for.
+Then this result is sent to two different places.
+
+The first place the result is sent is back to the CPLD to be
+displayed on the external LEDs.
+The second place is on to LCD on board the ARM.
+
+The specific details of this general plan will be described 
+in the remainder of this document.
+
+% TODO - picture of board
+
+% }}}
+
+% {{{ Pin Assignments
+\section{Pin Assignments}
+
+One of the critical design specifications of this device are
+the pin assignments.
+Table \ref{tbl:pins} lists the connections that were used.
+Keep in mind that these assignments are specific to this
+design and their choice was somewhat arbitrary.
+Other pins, such as those for the SPI on the ARM (PA5, PA12, PA11),
+cannot be changed due conflicts with other resources on the board.
+
+\begin{table}
+	\center
+	\begin{tabular}{| l | l | l | l | l | l | l |}
+		\hline
+		\multicolumn{1}{| c |}{Verilog} &
+		\multicolumn{1}{| c |}{} &
+		\multicolumn{1}{| c |}{ARM} &
+		\multicolumn{4}{| c |}{CPLD} \\
+		\hline
+		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
+		\hline
+		SCLK & SPI clock & PA5 & PT9B & D7 & J9 & 11 \\
+		SS\_L & SPI slave select & PB5 & PR4C & F13 & J7 & 1 \\
+		MOSI & SPI master out slave in & PA12 & PR4D & F12 & J7 & 3 \\
+		MISO & SPI master in slave out & PA11 & PR5C  & B16 & J7 & 5 \\
+		     & ground                  & GND  &       &     & J8 & 5 \\
+		\hline
+		\multicolumn{1}{| c |}{Verilog} &
+		\multicolumn{1}{| c |}{} &
+		\multicolumn{1}{| c |}{input switches} &
+		\multicolumn{4}{| c |}{CPLD} \\
+		\hline
+		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
+		\hline
+		in\_sw[8] & input switch 8 & 8 & PT2C & B2 & J5 & 1 \\
+		in\_sw[7] & input switch 7 & 7 & PT9A & D8 & J5 & 2 \\
+		in\_sw[6] & input switch 6 & 6 & PT2D & B3 & J5 & 3 \\
+		in\_sw[5] & input switch 5 & 5 & PT9C & E8 & J5 & 4 \\
+		in\_sw[4] & input switch 4 & 4 & PT3A & A2 & J5 & 5 \\
+		in\_sw[3] & input switch 3 & 3 & PT9D & E9 & J5 & 6 \\
+		in\_sw[2] & input switch 2 & 2 & PT3B & A3 & J5 & 7 \\
+		in\_sw[1] & input switch 1 & 1 & PT10A & A10 & J5 & 8 \\
+		          & power, Vdd, pull up &      &     &    & J9 & 1 \\
+		          & ground &  & & & J6 & 2 \\
+		\hline
+		\multicolumn{1}{|c|}{Verilog} &
+		\multicolumn{1}{|c|}{} &
+		\multicolumn{1}{|c|}{output LEDs} &
+		\multicolumn{4}{|c|}{CPLD} \\
+		\hline
+		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
+		\hline
+		led\_ext[10] & output led 10 & 10 & PT5C & B4 & J5 & 21 \\
+		led\_ext[9] & output led 9 & 9 & PT12A & A11  & J5 & 22 \\
+		led\_ext[8] & output led 8 & 8 & PT15D & B5   & J5 & 23 \\
+		led\_ext[7] & output led 7 & 7 & PT12B & A12  & J5 & 24 \\
+		led\_ext[6] & output led 6 & 6 & PT6E  & E7   & J5 & 25 \\
+		led\_ext[5] & output led 5 & 5 & PT12C & B11  & J5 & 26 \\
+		led\_ext[4] & output led 4 & 4 & PT6F  & E6   & J5 & 27 \\
+		led\_ext[3] & output led 3 & 3 & PT12D & B12  & J5 & 28 \\
+		led\_ext[2] & output led 2 & 2 & PT16C & A5   & J5 & 29 \\
+		led\_ext[1] & output led 1 & 1 & PT13C & C11  & J5 & 30 \\
+		          & ground &  & & & J6 & 16 \\
+		\hline
+	\end{tabular}
+	\caption{Definition of the pin assignments between the ARM board,
+		the CPLD, and other devices.}
+	\label{tbl:pins}
+\end{table}
+
+% describe the pin meanings
+Deciphering these pin assignments can be somewhat confusing.
+On the ARM board there are headers on either side with each
+pin clearly labeled.
+On the CPLD the pins correspond to headers (J9, J7, etc)
+and pins within those headers\citep[Pg. 11-14]{EB66}.
+The header and pin numbers are printed at the end of each header.
+The "Mach XO Ball" is used to identify the location on the
+chip itself.
+This is used for assigning pins when configuring the CPLD
+using Diamond\cite{Diamond}.
+
+% configuring using Diamond
+Configuring the CPLD pins using Diamond\cite{Diamond} can
+be confusing with the bewildering array of options and settings.
+Luckily the requirements for this device are fairly simple.
+All pins should be configured for low voltage 3.3 volt CMOS.
+Output pins can be configured for 8 mA.
+And no pull up or pull down options are required.
+
+% ARM to Lattice Diamond
+For the pins used with for the SPI that connect between the
+ARM and the CPLD there are no special requirements.
+They are both designed to work with 3.3 volt CMOS voltage levels.
+
+% ground
+For the ground connections each board provides several connection
+points.
+In general any connection to ground should work and
+it is not required to connect to a specific ground pin.
+For example the ARM board has four pins labeled GND.
+Any of these should work equally well.
+It is also a good idea to connect the grounds together so
+that they all reference the same common ground.
+
+% input switches
+The input switches to the CPLD can be interfaced by connecting
+one end to ground and the other end to the pin along with a
+pull up resistor to Vdd.
+A resistor value between 1k and 10k should be acceptable.
+And the pull up voltage for Vdd can be sourced from a pin on
+the board (Table \ref{tbl:pins}).
+
+% output leds
+The output LEDs are connected to the CPLD using a series
+resistor.
+Vdd would connect to the resistor which connects to the led
+(forward biased) which connects to the pin.
+The value of the resistor should limit the current to approximately
+10 mA.
+A value of 300 $\ohm$ is a typical value.
+
+% reset pin
+To reset the boards their reset pins must be configured.
+The ARM board provides a \verb+NRST+ pin which is active
+low when the reset button is pushed\cite[Pg. 17, 20]{UM1079}.
+This can then be connected to the CPLD to cause
+it to reset using \verb+GSRN+\citetext{\citealp[Pg. 46, 50]{DS1002}; \citealp[Pg. 8]{EB66}}.
+
+% }}}
+
+% {{{ SPI
+\section{Serial Peripheral Interface (SPI)}
+
+In order for the ARM and CPLD to communicate using SPI\citetext{ \citealp[Pg. 278]{cady2009microcontrollers}; \citealp[Pg. 665]{STRM0038}}
+they must both have the same options set.
+Table \ref{tbl:spi} lists the options that were used.
+
+\begin{table}
+\center
+\begin{tabular}{|l|l|}
+	\hline
+	option & value \\
+	\hline
+	MSB & first \\
+	CPOL & 0 \\
+	CPHA & 0 \\
+	SS\_L & slave select on low \\
+	\hline
+\end{tabular}
+\caption{SPI configuration options}
+\label{tbl:spi}
+\end{table}
+
+The MSB option specifies that the most significant bit is sent
+out first.
+CPOL specifies the polarity as zero and CPHA specifies the phase
+as zero (first clock edge).
+SS\_L specifies that slave is selected when this line is low.
+
+The pins used for the SPI on the ARM board were chosen because
+they did not conflict with any other on board devices.
+This resulted in pins PA5, PA12 and PA11 with SPI1 for SCK, MOSI,
+and MISO respectively\cite[Pg. 24]{UM1079}
+
+Since this device does not require high speed it was
+chosen to limit the speeds in an effort to improve reliability.
+During testing the value of the SPI clock was found to be approximately
+60 kHz.
+Since the CPLD is driven by this clock and does not require a specific
+frequency it may work with other values.
+Certainly values within the same order of magnitude are likely to work.
+
+The ARM, as the SPI master, controls when an SPI transaction occurs.
+The simplest way to control this, as was done in this design, is to use polling.
+This method is inefficient since data is repeatedly being sent
+whether it needs to or not
+but it has the side effect of helping to mitigate errors.
+Since each new transaction resets the registers to the beginning,
+any erroneous data will be quickly overwritten with new data.
+This will work as long as the number of transactions without errors
+far exceed the number of transactions with errors.
+
+% }}}
+
+% {{{ CPLD input/output formats
+\section{CPLD input/output formats}
+\label{sec:cpld}
+
+As was discussed previously, the CPLD has switch inputs
+and LED outputs.
+The orientation and format of this bits is the subject of
+this section.
+
+The bank of switches are typically numbered.
+In this case they were numbered one through eight.
+The convention used here is to assign the largest
+position as the most significant bit.
+This orientation should be maintained through the CPLD,
+through the SPI, and on to the ARM board.
+The ARM board can then split these in to two 4-bit segments
+as it so chooses (Section \ref{sec:calc}).
+
+The position of the output LEDs are assigned similarly to
+the switches.
+In the case where there are no numbers the MSB should be
+on the same side (e.g. both on the left side).
+
+% }}}
+
+% {{{ Calculations
+\section{Calculations}
+\label{sec:calc}
+
+The are several steps that must be performed in order for
+the ARM to perform the necessary calculations.
+Each will be discussed below.
+
+First the data must be received.
+The data should arrive over the SPI with the MSB first.
+And this needs to be split in to two 4-bit segments
+as is shown below.
+
+\begin{verbatim}
+8 7 6 5 4 3 2 1     8-bit data
+   /        \
+4 3 2 1   4 3 2 1   4-bit segments
+   A         B      numbers A and B
+\end{verbatim}
+
+But the ARM does not have a 4-bit data type.
+In order to solve this problem bit masks can be used to
+translate the data in to the required size.
+For example if the size necessary is 32-bits.
+This data is first set to zero, then logically OR'ed with
+the incoming data to "transfer" the bits.
+
+Next it must be chosen which operation to perform, add or subtract.
+To decide which the on board user push button\cite[Pg. 17]{UM1079}
+is used.  When it is released addition is performed, when it
+is pressed, subtraction is performed.
+When subtraction is performed the second number (LSB section)
+is subtracted from (MSB section) the first.
+
+% 2's compliment
+
+Another design requirement is that the add or subtract operation
+set the overflow bits.
+Since the 4-bits had to be placed in to a larger data type
+they should be shifted to the end towards the MSB.
+This will ensure that the operation will set the overflow bit
+accordingly.
+
+Once the addition or subtraction has been performed the data
+needs to be displayed on the LCD and sent back to the CPLD
+for display on the LEDs.
+
+The format for the LEDs is shown below.
+\begin{verbatim}
+     LEDS
+MSB         LSB
+8 7 6 5 4 3 2 1
+---------------
+    N V 4 3 2 1 
+\end{verbatim}
+Where \verb+N+ is 1 if it is negative and 0 if positive.
+\verb+V+ is 1 if overflow occurred and 0 otherwise.
+And positions 4 through 1 represent the unsigned 4-bit result
+with the MSB at position 4.
+
+Some examples of the format of the LCD are shown below.
+\begin{verbatim}
+N1V0-3
+N0V1+6
+N0V0 0
+\end{verbatim}
+Notice that \verb+N+ and \verb+V+ and the preceded the bit which
+indicates the negative flag or overflow respectively.
+The remaining space is used to display the result in decimal including the sign.
+A negative zero is disallowed.
+
+% }}}
+
+% {{{ References
+\clearpage
+
+\pagebreak
+\renewcommand*{\refname}{\vspace{-8mm}}
+\section{References}
+%\bibliographystyle{ieeetr}
+\bibliographystyle{plain}
+\bibliography{references}
+% }}}
+
+\end{document}
+
+% vim:foldmethod=marker
+
