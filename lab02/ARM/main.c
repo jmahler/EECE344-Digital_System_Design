@@ -62,7 +62,7 @@ void main() {
 
 	//GPIO_ResetBits(GPIOB, GPIO_Pin_6);  // turn off blue LED
 	//k = 0;
-	SPI1_Tx = 0x4F;  // data (constant) to send
+	SPI1_Tx = 0x4F;  // initial data to send
 	SPI1_Rx = 0x00;  // received data is stored here
 	while (1) {
 
@@ -72,8 +72,8 @@ void main() {
 		//}
 
 		if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY)) {
-			asm("nop");
 			// wait
+			asm("nop");
 		} else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE)) {
 			// a transaction was completed
 			GPIO_SetBits(GPIOB, GPIO_Pin_5);  // SS_L = 1, disable
@@ -100,10 +100,13 @@ void main() {
 			//	GPIO_ToggleBits(GPIOB, GPIO_Pin_7); // green LED
 			//}
 
+			// display the recieved byte on the LCD
 			sprintf(str, "%x", SPI1_Rx);
-
 			LCD_GLASS_Clear();
 			LCD_GLASS_DisplayString((unsigned char *) str);
+
+			// setup to echo the received data
+			SPI1_Tx = SPI1_Rx;
 
 /*
 			// alternate between two values

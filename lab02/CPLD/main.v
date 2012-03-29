@@ -9,7 +9,7 @@
  *
  * This module takes input from input switches (in_sw) and
  * outputs them over the SPI (MISO pin).
- * The input it receives over the SPI is written to the
+ * And the input it receives over the SPI is written to the
  * external LEDs (led_ext).
  *
  * The following SPI settings used by this module:
@@ -47,9 +47,12 @@ module main(
 	output wire [7:0] led_board
 	);
 
-	//GSR GSR_INST(.GSR(reset));
-	// TODO use the reset pin?
+	GSR GSR_INST(.GSR(reset));
 
+	// N is the last offset of data that is transferred.
+	// Currently there are 8-bits (0 - 7).
+	// This could be changed to support 16 bits
+	// needed.
 	parameter N=7;
 
 	// provide user feedback for switch actuation
@@ -58,7 +61,6 @@ module main(
 	// read register and next read register
 	reg [N:0] r_reg;
 	wire [N:0] r_next;
-
 	// write register, for storing received data
 	reg [N:0] w_reg;
 
