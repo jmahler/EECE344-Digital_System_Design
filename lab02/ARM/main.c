@@ -6,15 +6,231 @@
 
 #include "button.h"
 
+/* The configure_* functions are used to
+ * encapsulate the configuration of a specific
+ * device.  Refer to the function itself for
+ * further documentation.
+ */
+// declare functions (at end of file)
 void configure_SPI();
+void configure_LCD();
+void configure_LEDs();
 
 void main() {
+
 	unsigned int k;  // for loop counter
+	// to display string on LCD
 	char str[20];
-	GPIO_InitTypeDef GPIOB_init;
+	// send and recieve buffers for SPI
 	uint8_t SPI1_Tx;
 	uint8_t SPI1_Rx;
 
+	// {{{ ### INITIALIZATION ###
+
+	configure_LCD();
+
+	configure_SPI();
+
+	configure_LEDs();
+
+	enable_button();
+
+	// }}}
+
+	// {{{ ### MAIN LOOP ###
+
+	//GPIO_ResetBits(GPIOB, GPIO_Pin_6);  // turn off blue LED
+	k = 0;
+	SPI1_Tx = 0x00;  // initial data to send
+	SPI1_Rx = 0x00;  // received data is stored here
+	while (1) {
+
+		// If there was an SPI error, turn on the blue LED
+		//if (SPI_I2S_GetFlagStatus(SPI1, SPI_FLAG_CRCERR | SPI_FLAG_MODF | SPI_I2S_FLAG_FRE)) {
+		//	GPIO_SetBits(GPIOB, GPIO_Pin_6);  // turn on blue LED
+		//}
+
+		if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY)) {
+			// wait
+			asm("nop");
+		} else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE)) {
+			// a transaction was completed
+
+			GPIO_SetBits(GPIOB, GPIO_Pin_5);  // SS_L = 1, disable
+
+			// read the received data from the last transaction
+			//SPI_I2S_ClearFlag(SPI1, SPI_I2S_FLAG_RXNE);
+			SPI1_Rx = SPI_I2S_ReceiveData(SPI1);
+            // wait if needed
+			while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE));
+		} else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE)) {
+			// we can transmit more data
+
+			GPIO_ResetBits(GPIOB, GPIO_Pin_5);  // SS_L = 0, enable
+
+			// transmit a byte
+			SPI_I2S_SendData(SPI1, SPI1_Tx);
+			//while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE));
+		}
+
+		if (++k > 1e5) {
+			k = 0;
+
+			// toggle LED on PB6, to show we are alive
+			//if (!button_pressed()) {
+			//	GPIO_ToggleBits(GPIOB, GPIO_Pin_7); // green LED
+			//}
+
+			// display the recieved byte on the LCD
+			sprintf(str, "%x", SPI1_Rx);
+			LCD_GLASS_Clear();
+			LCD_GLASS_DisplayString((unsigned char *) str);
+
+			// setup to echo the received data
+			SPI1_Tx = SPI1_Rx;
+		}
+	}
+	// }}}
+
+}
+
+// {{{ configure_SPI()
+/*
+ * configure_SPI() - configure the SPI (SPI1) interface
+ * 
+ * SYNOPSIS
+ * --------
+ *
+ *  configure_SPI();
+ *
+ *  // refer to stm32lxx_spi.c in the standard peripheral library (ST)
+ *  // for the most complete description.
+ *
+ *  uint8_t SPI1_Tx;
+ *  uint8_t SPI1_Rx;
+ *
+ *  SPI1_Rx = SPI_I2S_ReceiveData(SPI1);
+ *  SPI_I2S_SendData(SPI1, SPI1_Tx);
+ *
+ *  SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY)
+ *  SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE)
+ *
+ * DESCRIPTION
+ * -----------
+ *
+ * This configuration of SPI uses SPI1 of the STM32L Discovery board.
+ * This results in the following pin assignments.
+ *
+ *  SPI   pin
+ *  ---   ---
+ *  SCK   PA5
+ *  MOSI  PA12
+ *  MISO  PA11
+ *  NSS   PB5  *
+ *
+ *  * Pin PB5 for slave select (NSS) is not a result of
+ *    the SPI configuration.  But here it is configured as an
+ *    output so it can be "bit banged" by the code controlling
+ *    the SPI transactions.
+ *
+ * The following SPI configuration options were set.
+ * These should be set identically on the slave which is being
+ * communicated with.
+ *
+ *  name   value   description
+ *  ----   -----   -----------
+ *  MSB    first   most significant bit)
+ *  CPOL   0       polarity
+ *  CPHA   0       phase
+ *
+ * The slowest baud rate has been chosen since this application
+ * emphasizes reliability as opposed to speed.
+ * Testing found this to be approximately 60 kb/s
+ *
+ * The data size transferred is 8-bits.
+ * This could be easily configured for 16-bits if needed.
+ */
+void configure_SPI() {
+	GPIO_InitTypeDef GPIO_init;
+	SPI_InitTypeDef SPI_init;
+
+	// refer to stm32l1xx_spi.c for the steps
+	// that are required to configure SPI
+
+	// enable peripheral clock for SPI1
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+	//RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI1, ENABLE);
+
+	// Enable SCK, MOSI, MISO, and NSS GPIO clocks?
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+
+	// Peripherals alternate function:
+	// connect pins to peripherals
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_SPI1);  // SCK, PA5
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_SPI1); // MOSI, PA12
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_SPI1); // MISO, PA11
+//	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5 | GPIO_PinSource12 | GPIO_PinSource11, GPIO_AF_SPI1); // MISO, PA11
+	// configure pin alternate function
+	GPIO_init.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_12 | GPIO_Pin_11;
+	GPIO_init.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_init.GPIO_Speed = GPIO_Speed_40MHz;  // high speed
+	GPIO_init.GPIO_OType = GPIO_OType_PP;
+	GPIO_init.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOA, &GPIO_init);
+
+	// program the polarity, phase, etc
+	SPI_StructInit(&SPI_init);  // default values
+	SPI_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+	SPI_init.SPI_Mode = SPI_Mode_Master;
+	SPI_init.SPI_DataSize = SPI_DataSize_8b;
+	//SPI_init.SPI_DataSize = SPI_DataSize_16b;
+	SPI_init.SPI_CPOL = SPI_CPOL_Low;	// CPOL = 0
+	SPI_init.SPI_CPHA = SPI_CPHA_1Edge;	// CPHA = 0
+	SPI_init.SPI_NSS = SPI_NSS_Soft;  // NSS => SPI_CR1
+	SPI_init.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_256;  // slow
+	SPI_init.SPI_FirstBit = SPI_FirstBit_MSB;
+	//SPI_init.SPI_CRCPolynomial = ?
+	SPI_Init(SPI1, &SPI_init);
+
+	SPI_Cmd(SPI1, ENABLE);
+
+	// Configure PB5 so it can be bit-banged (NSS, SS_L)
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
+	// (re-use the previous GPIO_Init structure)
+	GPIO_init.GPIO_Pin = GPIO_Pin_5;
+	GPIO_init.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_init.GPIO_Speed = GPIO_Speed_400KHz; // very low speed
+	GPIO_init.GPIO_OType = GPIO_OType_PP;
+	GPIO_init.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOB, &GPIO_init);
+}
+// }}}
+
+// {{{ configure_LCD()
+
+/*
+ * configure_LCD();
+ *
+ * Configures the CLD so it can be used to display characters.
+ *
+ * SYNOPSIS
+ * --------
+ *
+ *   configure_LCD();
+ *
+ *   while (1) {
+ *     // do something
+ *      
+ *      // refresh display
+ *      //
+ *      // If this doesn't display right make sure you aren't
+ *      // repeating too quickly.
+ *      LCD_Glass_clear();
+ *      LCD_GLASS_DisplayString((unsigned char*) str);
+ *   }
+ *
+ */
+void configure_LCD() {
 	// Enable the High Speed Internal (HSI) clock
 	RCC_HSICmd(ENABLE);
 	// Select the HSI as SYSCLK
@@ -40,125 +256,50 @@ void main() {
 	LCD_GLASS_Configure_GPIO();
 	LCD_GLASS_Init();
 
-	enable_button();
-	// XXX - don't put this after SPI or it will disrupt the GPIO config
+	LCD_GLASS_Clear();
+}
+// }}}
 
-	configure_SPI();
+// {{{ configure_LEDs
+/*
+ * configure_LEDs()
+ *
+ * The STM32L Discovery has two LEDS on the board
+ * which can be turned on and off.
+ * There is a blue LED on PB6 and a green one on PB7.
+ * This function configures them so they can be turned on,
+ * off or toggled.
+ * 
+ *  SYNOPSIS
+ *  --------
+ *  
+ *  configure_LEDs();
+ *
+ *  GPIO_ToggleBits(GPIOB, GPIO_Pin_6); // TOGGLE blue LED
+ *  GPIO_ToggleBits(GPIOB, GPIO_Pin_7); // TOGGLE green LED
+ *
+ *  GPIO_SetBits(GPIOB, GPIO_Pin_6);  // turn ON blue LED
+ *  GPIO_SetBits(GPIOB, GPIO_Pin_7);  // turn ON green LED
+ *
+ *  GPIO_ResetBits(GPIOB, GPIO_Pin_6);  // turn OFF blue LED
+ *  GPIO_ResetBits(GPIOB, GPIO_Pin_7);  // turn OFF green LED
+ * 
+ */
+void configure_LEDs() {
+	GPIO_InitTypeDef GPIOB_init;
 
 	// setup as output so we can toggle the LED or outputs
-	// PB5 is for SS_L used with SPI
 	// PB6 is for the blue LED
 	// PB7 is for the green LED
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
-	//GPIOB_init.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
-	GPIOB_init.GPIO_Pin = GPIO_Pin_5;
+
+	GPIOB_init.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
 	GPIOB_init.GPIO_Mode = GPIO_Mode_OUT;
 	GPIOB_init.GPIO_Speed = GPIO_Speed_400KHz; // very low speed
 	GPIOB_init.GPIO_OType = GPIO_OType_PP;
 	GPIOB_init.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOB, &GPIOB_init);
-
-	SPI_Cmd(SPI1, ENABLE);
-
-	//GPIO_ResetBits(GPIOB, GPIO_Pin_6);  // turn off blue LED
-	//k = 0;
-	SPI1_Tx = 0x4F;  // initial data to send
-	SPI1_Rx = 0x00;  // received data is stored here
-	while (1) {
-
-		// If there was an SPI error, turn on the blue LED
-		//if (SPI_I2S_GetFlagStatus(SPI1, SPI_FLAG_CRCERR | SPI_FLAG_MODF | SPI_I2S_FLAG_FRE)) {
-		//	GPIO_SetBits(GPIOB, GPIO_Pin_6);  // turn on blue LED
-		//}
-
-		if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY)) {
-			// wait
-			asm("nop");
-		} else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE)) {
-			// a transaction was completed
-			GPIO_SetBits(GPIOB, GPIO_Pin_5);  // SS_L = 1, disable
-
-			// read the received data from the last transaction
-			//SPI_I2S_ClearFlag(SPI1, SPI_I2S_FLAG_RXNE);
-			SPI1_Rx = SPI_I2S_ReceiveData(SPI1);
-			while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE));
-		} else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE)) {
-			// transmit buffer is ready for more data
-
-			GPIO_ResetBits(GPIOB, GPIO_Pin_5);  // SS_L = 0, enable
-
-			// transmit a byte
-			SPI_I2S_SendData(SPI1, SPI1_Tx);
-			//while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE));
-		}
-
-		if (++k > 1e5) {
-			k = 0;
-
-			// toggle LED on PB6, to show we are alive
-			//if (!button_pressed()) {
-			//	GPIO_ToggleBits(GPIOB, GPIO_Pin_7); // green LED
-			//}
-
-			// display the recieved byte on the LCD
-			sprintf(str, "%x", SPI1_Rx);
-			LCD_GLASS_Clear();
-			LCD_GLASS_DisplayString((unsigned char *) str);
-
-			// setup to echo the received data
-			SPI1_Tx = SPI1_Rx;
-
-/*
-			// alternate between two values
-			if (SPI1_Rx == 0x4F) {
-				SPI1_Tx = 0xF4;
-			} else {
-				SPI1_Tx = 0x4F;
-			}
-*/
-		}
-	}
 }
+// }}}
 
-void configure_SPI() {
-	GPIO_InitTypeDef GPIO_init;
-	SPI_InitTypeDef SPI_init;
-
-	// refer to stm32l1xx_spi.c for the steps
-	// that are required to configure SPI
-
-	// enable peripheral clock for SPI1
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
-	//RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI1, ENABLE);
-
-	// TODO Enable SCK, MOSI, MISO, and NSS GPIO clocks?
-	//RCC_AHBPeriphClockCmd();
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-
-	// Peripherals alternate function:
-	// connect pins to peripherals
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_SPI1);  // SCK, PA5
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_SPI1); // MOSI, PA12
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_SPI1); // MISO, PA11
-//	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5 | GPIO_PinSource12 | GPIO_PinSource11, GPIO_AF_SPI1); // MISO, PA11
-	// configure pin alternate function
-	GPIO_init.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_12 | GPIO_Pin_11;
-	GPIO_init.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_init.GPIO_Speed = GPIO_Speed_40MHz;  // high speed
-	GPIO_init.GPIO_OType = GPIO_OType_PP;
-	GPIO_init.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOA, &GPIO_init);
-
-	// program the polarity, phase, etc
-	SPI_StructInit(&SPI_init);  // default values
-	SPI_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-	SPI_init.SPI_Mode = SPI_Mode_Master;
-	SPI_init.SPI_DataSize = SPI_DataSize_8b;
-	SPI_init.SPI_CPOL = SPI_CPOL_Low;	// CPOL = 0
-	SPI_init.SPI_CPHA = SPI_CPHA_1Edge;	// CPHA = 0
-	SPI_init.SPI_NSS = SPI_NSS_Soft;  // NSS => SPI_CR1
-	SPI_init.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_256;
-	SPI_init.SPI_FirstBit = SPI_FirstBit_MSB;
-	//SPI_init.SPI_CRCPolynomial = ?
-	SPI_Init(SPI1, &SPI_init);
-}
+// vim:foldmethod=marker
