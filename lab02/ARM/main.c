@@ -16,6 +16,9 @@ void configure_SPI();
 void configure_LCD();
 void configure_LEDs();
 
+// The "special" add/sub operation
+extern uint32_t saddsub(uint32_t, uint32_t, uint32_t);
+
 void main() {
 
 	unsigned int k;  // for loop counter
@@ -35,12 +38,20 @@ void main() {
     char state;
 
     // variables used for calculations
-    uint8_t numA;
-    uint8_t numB;
-    uint8_t res;    // calculation result
+    uint32_t numA;
+    uint32_t numB;
+    uint32_t res;    // calculation result
 
-#define LOWER_4_BITS 0x0F
-#define UPPER_4_BITS 0xF0
+	// extracted values for LCD
+    uint32_t sign;
+    uint32_t oflow;
+    uint32_t num;
+
+#define LOWER_4_BITS 0x0000000F
+#define UPPER_4_BITS 0x000000F0
+// overflow and sign bitmask (from saddsub)
+#define V_BIT 0x000000000010
+#define N_BIT 0x000000000020
 
 
 	// {{{ ### INITIALIZATION ###
@@ -62,6 +73,7 @@ void main() {
 	SPI1_Tx = 0x00;  // initial data to send
 	SPI1_Rx = 0x00;  // received data is stored here
     state = START;
+
 	while (1) {
 
         if (SPI_SEND_RECEIVE == state) {
@@ -108,32 +120,30 @@ void main() {
             numB |= SPI1_Rx & UPPER_4_BITS;
             // shift so it is in the lower 4 bits
             numB = numB >> 4;
+			// numA and numB in the lower 4 bits, ready for saddsub
 
             // add the numbers together
             if (button_pressed()) {
                 // subtract
-                res = numA - numB;
+                res = saddsub(1, numA, numB);
             } else {
                 // add
-                res = numA + numB;
+                res = saddsub(0, numA, numB);
             }
 
-            // TODO - overflow, sign?
-
-			// toggle LED on PB6, to show we are alive
-			//if (!button_pressed()) {
-			//	GPIO_ToggleBits(GPIOB, GPIO_Pin_7); // green LED
-			//}
+			// extract the components, needed for LCD	
+			sign = (res & N_BIT) ? 1 : 0;
+			oflow = (res & V_BIT) ? 1 : 0;
+			num = res & NUM;
 
             // ** LCD DISPLAY **
 			// display the recieved byte on the LCD
-			sprintf(str, "%x  %x %x", numA, numB, res);
+			sprintf(str, "N%dV%d %d", sign, oflow, num);
 			LCD_GLASS_Clear();
 			LCD_GLASS_DisplayString((unsigned char *) str);
 
-            // ** return data to CPLD **
-			// setup to echo the received data
-			SPI1_Tx = SPI1_Rx;
+			// store to for SPI to send to CPLD to display on LEDs
+			SPI1_Tx = (uint8_t) res;
 
             // next state
             state = PAUSE;
