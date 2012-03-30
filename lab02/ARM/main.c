@@ -43,15 +43,16 @@ void main() {
     uint32_t res;    // calculation result
 
 	// extracted values for LCD
-    uint32_t sign;
-    uint32_t oflow;
-    uint32_t num;
+    unsigned char sign;
+    unsigned char oflow;
+    uint8_t num;
 
 #define LOWER_4_BITS 0x0000000F
 #define UPPER_4_BITS 0x000000F0
 // overflow and sign bitmask (from saddsub)
 #define V_BIT 0x000000000010
 #define N_BIT 0x000000000020
+#define NUM 0x00000000000F
 
 
 	// {{{ ### INITIALIZATION ###
@@ -132,13 +133,13 @@ void main() {
             }
 
 			// extract the components, needed for LCD	
-			sign = (res & N_BIT) ? 1 : 0;
-			oflow = (res & V_BIT) ? 1 : 0;
+			sign = (res & N_BIT) ? '1' : '0';
+			oflow = (res & V_BIT) ? '1' : '0';
 			num = res & NUM;
 
             // ** LCD DISPLAY **
 			// display the recieved byte on the LCD
-			sprintf(str, "N%dV%d %d", sign, oflow, num);
+			sprintf(str, "N%cV%c%u", sign, oflow, num);
 			LCD_GLASS_Clear();
 			LCD_GLASS_DisplayString((unsigned char *) str);
 
