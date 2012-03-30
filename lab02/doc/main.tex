@@ -351,16 +351,21 @@ is subtracted from (MSB section) the first.
 
 % 2's compliment
 
-Another design requirement is that the add or subtract operation
-set the overflow bits.
-Since the 4-bits had to be placed in to a larger data type
-they should be shifted to the end towards the MSB.
-This will ensure that the operation will set the overflow bit
-accordingly.
+Another design requirement is that the add and subtract operations
+set the overflow and carry bits.
+To accomplish this using ARM specific assembly instructions
+must be used \cite[Pg. 50]{furber2000arm} and a status
+register must be examined\cite[Pg. 40]{furber2000arm}.
 
-Once the addition or subtraction has been performed the data
-needs to be displayed on the LCD and sent back to the CPLD
-for display on the LEDs.
+Since the 4-bits had to be placed in to a larger data type
+they should be shifted to towards the MSB.
+This will ensure that the operation will set the overflow and
+sign bit appropriately.
+
+Once the addition or subtraction has been performed and the
+results of status register are known this data must be
+manipulated in to two different formats, one for the LCD,
+and the other for the LEDs.
 
 The format for the LEDs is shown below.
 \begin{verbatim}
