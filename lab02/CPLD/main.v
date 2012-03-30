@@ -56,6 +56,8 @@ module main(
 	parameter N=7;
 
 	// provide user feedback for switch actuation
+	wire [N:0] n_in_sw;  // negated version of in_sw, sw closed -> set
+	assign n_in_sw = ~(in_sw);
 	assign led_board = in_sw;
 
 	// read register and next read register
@@ -65,7 +67,7 @@ module main(
 	reg [N:0] w_reg;
 
 	// store the received data on the external led's
-	assign led_ext = w_reg;
+	assign led_ext = ~(w_reg);  // invert so 0 -> off, 1 -> on
 
 	// ### main SPI control: sample, propagate ###
 
@@ -82,7 +84,7 @@ module main(
 		if (ss_l) begin
 			// RESET
 			// reset when sclk falls while ss_l is high (disabled)
-			r_reg <= in_sw;  // switch input
+			r_reg <= n_in_sw;  // switch input
 			w_reg <= r_next; // update the write register with the last read
 			// use r_next (not r_reg) so we don't miss the last mosi (SAMPLE)
 		end else begin
