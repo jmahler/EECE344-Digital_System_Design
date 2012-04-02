@@ -19,6 +19,18 @@
   * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
   */ 
 
+/**
+  * CHANGELOG
+  * ---------
+  *
+  * --------------------------------------------------------------------------- 
+  * Added support for the '+' character.
+  *
+  * -- Jeremiah Mahler <jmmahler@gmail.com>  Mon, 02 Apr 2012 00:25:40 -0700
+  * --------------------------------------------------------------------------- 
+  */
+
+
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __stm32l_discovery_lcd
 #define __stm32l_discovery_lcd
