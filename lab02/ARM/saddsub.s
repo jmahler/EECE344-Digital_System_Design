@@ -39,10 +39,10 @@ saddsub
     ; the result in to the lower 16 bits and
     ; fills the upper 16 bits with zeros.
 _SUB:
-	SUBS r0, r1, r2  ; r0 = r1 - r2
+	SUBS r0, r2, r1  ; r0 = r2 - r1
 	B _DONE;
 _ADD:
-	ADDS r0, r1, r2  ; r0 = r1 - r2
+	ADDS r0, r1, r2  ; r0 = r1 + r2
 _DONE:
 	LSR r0, r0, #28
     ; add/sub done, and upper 28 bits zero
