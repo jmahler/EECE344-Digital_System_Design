@@ -24,6 +24,9 @@
   * CSU, Chico
   * Spring 2012
   * Prof. Kredo
+  *
+  * ------------------------------------------------------------ 
+  *  
   */
 
 /* Includes ------------------------------------------------------------------*/
@@ -293,6 +296,10 @@ static void LCD_Conv_Char_Seg(uint8_t* c,bool point,bool column, uint8_t* digit)
 
     case '-' :
       ch = C_minus;
+      break;
+
+    case '+' :
+      ch = C_plus;
       break;
 
     case '/' :

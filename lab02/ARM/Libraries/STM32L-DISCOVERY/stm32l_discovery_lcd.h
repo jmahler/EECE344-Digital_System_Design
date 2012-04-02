@@ -100,6 +100,9 @@ MSB   { 1 , 1 , 0 , 0   }
 /* constant code for '-' character */
 #define C_minus 0xA000
 
+/* constant code for '+' character */
+#define C_plus 0xA014
+
 /* constant code for '/' */
 #define C_slatch  0x00c0
 

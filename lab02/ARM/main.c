@@ -45,6 +45,7 @@ void main() {
 
 	// extracted values for LCD
     unsigned char sign;
+    unsigned char sign_char;
     unsigned char oflow;
     uint8_t num;
 
@@ -58,13 +59,13 @@ void main() {
 
 	// {{{ ### INITIALIZATION ###
 
-	configure_LCD();
-
-	configure_SPI();
+	enable_button();
 
 	configure_LEDs();
 
-	enable_button();
+	configure_LCD();
+
+	configure_SPI();
 
 	// }}}
 
@@ -141,11 +142,31 @@ void main() {
 				// extract the components, needed for LCD	
 				sign = (res & N_BIT) ? '1' : '0';
 				oflow = (res & V_BIT) ? '1' : '0';
+                
+                // extract only the 'number' part of the result
 				num = res & NUM;
 
+                if (0 == num)
+                    sign_char = ' ';
+                else if ('1' == sign)
+                    sign_char = '-';
+                else
+                    sign_char = '+';
+
+                // If it is negative, we have to convert
+                // it to positive (2s compliment) so the LCD
+                // displays the correct value
+                // (A '-' sign is added using 'sign_char')
+                if ('1' == sign) 
+                    num = ((~num + 1) & NUM);
+                // Also, 'NUM' is used again to mask off any
+                // extra ones created by +1 which shouldn't be present
+                // in our 4-bit number.
+
 				// ** LCD DISPLAY **
-				// display the recieved byte on the LCD
-				sprintf(str, "N%cV%c%u", sign, oflow, num);
+                // prepare the string
+				sprintf(str, "N%cV%c%c%u", sign, oflow, sign_char, num);
+
 				LCD_GLASS_Clear();
 				LCD_GLASS_DisplayString((unsigned char *) str);
 
