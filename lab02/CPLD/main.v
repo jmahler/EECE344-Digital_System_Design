@@ -43,8 +43,7 @@ module main(
 	input wire mosi,
 	output wire miso,
 	output wire [7:0] led_ext,
-	input wire [7:0] in_sw,
-	output wire [7:0] led_board
+	input wire [7:0] in_sw
 	);
 
 	GSR GSR_INST(.GSR(reset));
@@ -58,7 +57,6 @@ module main(
 	// provide user feedback for switch actuation
 	wire [N:0] n_in_sw;  // negated version of in_sw, sw closed -> set
 	assign n_in_sw = ~(in_sw);
-	assign led_board = in_sw;
 
 	// read register and next read register
 	reg [N:0] r_reg;
