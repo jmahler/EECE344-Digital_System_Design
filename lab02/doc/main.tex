@@ -40,8 +40,7 @@
 % {{{ Title Page
 
 \title{Lab 2 (EECE 344)}
-%\subtitle{ojiowjef}
-\date{March 27, 2012}
+\date{April 3, 2012}
 \author{Jeremiah Mahler}
 
 \maketitle
@@ -106,6 +105,7 @@ in the remainder of this document.
 
 % {{{ Pin Assignments
 \section{Pin Assignments}
+\label{sec:pa}
 
 One of the critical design specifications of this device are
 the pin assignments.
@@ -319,6 +319,12 @@ on the same side (e.g. both on the left side).
 \section{Calculations}
 \label{sec:calc}
 
+The bit positions described here are referenced using the
+most significant bit (MSB) and least significant bit (LSB).
+The orientation from left to right does not necessarily
+correspond to the orientation of the switches and LEDs.
+Refer to Section \ref{sec:pa} for a description of the orientation.
+
 The are several steps that must be performed in order for
 the ARM to perform the necessary calculations.
 Each will be discussed below.
@@ -329,10 +335,11 @@ And this needs to be split in to two 4-bit segments
 as is shown below.
 
 \begin{verbatim}
+MSB         LSB
 8 7 6 5 4 3 2 1     8-bit data
    /        \
 4 3 2 1   4 3 2 1   4-bit segments
-   A         B      numbers A and B
+   B         A      numbers A and B
 \end{verbatim}
 
 But the ARM does not have a 4-bit data type.
@@ -347,7 +354,7 @@ To decide which the on board user push button\cite[Pg. 17]{UM1079}
 is used.  When it is released addition is performed, when it
 is pressed, subtraction is performed.
 When subtraction is performed the second number (LSB section)
-is subtracted from (MSB section) the first.
+is subtracted from the first (MSB section).
 
 % 2's compliment
 
@@ -386,10 +393,30 @@ N1V0-3
 N0V1+6
 N0V0 0
 \end{verbatim}
-Notice that \verb+N+ and \verb+V+ and the preceded the bit which
+Notice that \verb+N+ and \verb+V+ preceed the bit which
 indicates the negative flag or overflow respectively.
 The remaining space is used to display the result in decimal including the sign.
 A negative zero is disallowed.
+
+\begin{table}
+\begin{tabular}{|c c|c c|c c|}
+\hline
+\multicolumn{2}{|c}{\textbf{switches}} & \multicolumn{2}{|c|}{\textbf{LEDs}}       & \multicolumn{2}{c|}{\textbf{LCD}} \\
+A   & B                        & button=pressed & button=released & button=pressed & button=released \\
+\hline
+0000 & 0000 & 00 0000 & 00 0000 & N0V0 0 & N0V0 0 \\
+0000 & 0001 & 00 0001 & 00 0001 & N0V0+1 & N0V0+1 \\
+0001 & 0000 & 00 XXXX & 00 0001 & N0V0-1 & N0V0+1 \\
+1010 & 0011 & & 10 1101 & & N1V0-3 \\
+1100 & 0110 & 01 0110 & & N0V1+6 & \\
+\hline
+\end{tabular}
+\caption{Calculation test values showing switch inputs, LED, and LCD outputs.
+The orientation used here has the MSB on the left and the LSB on the right.
+For the subtraction operation the results equals B - A.
+When the button is released addition is performed, when it is pressed subtraction is performed.}
+\label{tbl:calc}
+\end{table}
 
 % }}}
 
