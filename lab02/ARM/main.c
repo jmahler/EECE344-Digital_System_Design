@@ -40,7 +40,8 @@ void main() {
     // variables used for calculations
     uint32_t numA;
     uint32_t numB;
-    uint32_t res;    // calculation result
+    uint32_t res;       // calculation result
+    uint32_t prev_res;	// previous calculation result
 
 	// extracted values for LCD
     unsigned char sign;
@@ -132,19 +133,27 @@ void main() {
                 res = saddsub(0, numA, numB);
             }
 
-			// extract the components, needed for LCD	
-			sign = (res & N_BIT) ? '1' : '0';
-			oflow = (res & V_BIT) ? '1' : '0';
-			num = res & NUM;
+			if (res == prev_res) {
+				// leave LCD as is,
+				// This helps reduce flicker since it is not always
+				// being cleared and reset
+			} else {
+				// extract the components, needed for LCD	
+				sign = (res & N_BIT) ? '1' : '0';
+				oflow = (res & V_BIT) ? '1' : '0';
+				num = res & NUM;
 
-            // ** LCD DISPLAY **
-			// display the recieved byte on the LCD
-			sprintf(str, "N%cV%c%u", sign, oflow, num);
-			LCD_GLASS_Clear();
-			LCD_GLASS_DisplayString((unsigned char *) str);
+				// ** LCD DISPLAY **
+				// display the recieved byte on the LCD
+				sprintf(str, "N%cV%c%u", sign, oflow, num);
+				LCD_GLASS_Clear();
+				LCD_GLASS_DisplayString((unsigned char *) str);
 
-			// store to for SPI to send to CPLD to display on LEDs
-			SPI1_Tx = (uint8_t) res;
+				// store to for SPI to send to CPLD to display on LEDs
+				SPI1_Tx = (uint8_t) res;
+
+				prev_res = res;
+			}
 
             // next state
             state = PAUSE;
