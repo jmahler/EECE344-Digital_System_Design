@@ -26,9 +26,6 @@
  *  to determine when to initialize the data because ss_l was
  *  the same value when it is sampling/propagating.
  *  
- *  The solution was derived from a shift register example at:
- *  [http://stackoverflow.com/questions/3517752/basic-verilog-question-shift-register]
- *
  * AUTHOR
  * ------
  *
@@ -37,7 +34,7 @@
  */
 
 module main(
-	input wire reset,
+	input wire rst_l,
 	input wire ss_l,
 	input wire sclk,
 	input wire mosi,
@@ -46,7 +43,7 @@ module main(
 	input wire [7:0] in_sw
 	);
 
-	GSR GSR_INST(.GSR(reset));
+	GSR GSR_INST(.GSR(rst_l));
 
 	// N is the last offset of data that is transferred.
 	// Currently there are 8-bits (0 - 7).
@@ -78,17 +75,22 @@ module main(
 		mosi_sample <= mosi;
 	end
 
-	always @(negedge sclk) begin
-		if (ss_l) begin
-			// RESET
-			// reset when sclk falls while ss_l is high (disabled)
-			r_reg <= n_in_sw;  // switch input
-			w_reg <= r_next; // update the write register with the last read
-			// use r_next (not r_reg) so we don't miss the last mosi (SAMPLE)
+	always @(negedge sclk or negedge rst_l) begin
+		if (~rst_l) begin
+			r_reg <= 8'b0;
+			w_reg <= 8'b0;
 		end else begin
-			// PROPAGATE
-			r_reg <= r_next;
-			//w_reg <= w_reg;
+			if (ss_l) begin
+				// RESET
+				// reset when sclk falls while ss_l is high (disabled)
+				r_reg <= n_in_sw;  // switch input
+				w_reg <= r_next; // update the write register with the last read
+				// use r_next (not r_reg) so we don't miss the last mosi (SAMPLE)
+			end else begin
+				// PROPAGATE
+				r_reg <= r_next;
+				//w_reg <= w_reg;
+			end
 		end
 	end
 endmodule
