@@ -117,12 +117,14 @@ cannot be changed due conflicts with other resources on the board.
 
 \begin{table}
 	\center
-	\begin{tabular}{| l | l | l | l | l | l | l |}
+	\begin{tabular}{|l|l|l|l|l|l|l|}
 		\hline
-		\multicolumn{1}{| c |}{Verilog} &
+		\multicolumn{7}{|c|}{\textbf{SPI}} \\
+		\hline
+		\multicolumn{1}{| c |}{\textbf{Verilog}} &
 		\multicolumn{1}{| c |}{} &
-		\multicolumn{1}{| c |}{ARM} &
-		\multicolumn{4}{| c |}{CPLD} \\
+		\multicolumn{1}{| c |}{\textbf{ARM}} &
+		\multicolumn{4}{| c |}{\textbf{CPLD}} \\
 		\hline
 		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
 		\hline
@@ -132,10 +134,12 @@ cannot be changed due conflicts with other resources on the board.
 		MISO & SPI master in slave out & PA11 & PR5C  & B16 & J7 & 5 \\
 		     & ground                  & GND  &       &     & J8 & 5 \\
 		\hline
-		\multicolumn{1}{| c |}{Verilog} &
+		\multicolumn{7}{|c|}{\textbf{switches}} \\
+		\hline
+		\multicolumn{1}{| c |}{\textbf{Verilog}} &
 		\multicolumn{1}{| c |}{} &
-		\multicolumn{1}{| c |}{input switches} &
-		\multicolumn{4}{| c |}{CPLD} \\
+		\multicolumn{1}{| c |}{\textbf{input switches}} &
+		\multicolumn{4}{| c |}{\textbf{CPLD}} \\
 		\hline
 		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
 		\hline
@@ -150,10 +154,12 @@ cannot be changed due conflicts with other resources on the board.
 		          & power, Vdd, pull up &      &     &    & J9 & 1 \\
 		          & ground &  & & & J6 & 2 \\
 		\hline
-		\multicolumn{1}{|c|}{Verilog} &
+		\multicolumn{7}{|c|}{\textbf{LEDs}} \\
+		\hline
+		\multicolumn{1}{|c|}{\textbf{Verilog}} &
 		\multicolumn{1}{|c|}{} &
-		\multicolumn{1}{|c|}{output LEDs} &
-		\multicolumn{4}{|c|}{CPLD} \\
+		\multicolumn{1}{|c|}{\textbf{output LEDs}} &
+		\multicolumn{4}{|c|}{\textbf{CPLD}} \\
 		\hline
 		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
 		\hline
@@ -168,6 +174,17 @@ cannot be changed due conflicts with other resources on the board.
 		led\_ext[6] & output led 2 & 2 & PT16C & A5   & J5 & 29 \\
 		led\_ext[7] & output led 1 & 1 & PT13C & C11  & J5 & 30 \\
 		          & ground &  & & & J6 & 16 \\
+		\hline
+		\multicolumn{7}{|c|}{\textbf{reset}} \\
+		\hline
+		\multicolumn{1}{| c |}{\textbf{Verilog}} &
+		\multicolumn{1}{| c |}{} &
+		\multicolumn{1}{| c |}{\textbf{ARM}} &
+		\multicolumn{4}{| c |}{\textbf{CPLD}} \\
+		\hline
+		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
+		\hline
+		rst\_l & active low reset & NRST & PL7B & G2 & J3 & 27 \\
 		\hline
 	\end{tabular}
 	\caption{Definition of the pin assignments between the ARM board,
@@ -233,10 +250,11 @@ A value of 300 $\ohm$ is a typical value.
 
 % reset pin
 To reset the boards their reset pins must be configured.
-The ARM board provides a \verb+NRST+ pin which is active
-low when the reset button is pushed\cite[Pg. 17, 20]{UM1079}.
+The ARM board provides a \verb+NRST+ pin which is at Vcc
+when enabled and goes low when the reset button is pushed\cite[Pg. 17, 20]{UM1079}.
 This can then be connected to the CPLD to cause
-it to reset using \verb+GSRN+\citetext{\citealp[Pg. 46, 50]{DS1002}; \citealp[Pg. 8]{EB66}}.
+it to reset using \verb+GSRN+\citetext{\citealp[Pg. 13, 46, 50, 53]{DS1002}; \citealp[Pg. 8]{EB66}}.
+Table \ref{tbl:pins} lists the exact pins that were used.
 
 % }}}
 
