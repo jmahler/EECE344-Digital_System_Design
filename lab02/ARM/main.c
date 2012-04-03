@@ -1,3 +1,36 @@
+/*
+ * NAME
+ * ----
+ *
+ * main.c
+ *
+ * DESCRIPTION
+ * -----------
+ *
+ * This code serves several purposes.
+ *
+ * - It acts as an SPI master and sends/receives data.
+ *
+ * - It assumes the 8-bit data it receives is two 4-bit
+ *   unsigned numbers.
+ *
+ * - It performs addition of the USER button is released
+ *   and subtraction if pressed.
+ *
+ * - It display the result on the LCD as an unsigned number
+ *   and it also includes the negative and overflow flags.
+ * 
+ * - It sends the 8-bit result through the SPI.
+ *
+ * More detailed descriptions can be found in the documentation
+ * included with this project or in the source code.
+ *
+ * AUTHOR
+ * ------
+ *
+ * Jeremiah Mahler <jmmahler@gmail.com>
+ *
+ */
 
 #include "stm32l1xx.h"
 #include "stdio.h"

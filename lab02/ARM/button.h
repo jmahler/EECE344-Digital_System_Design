@@ -1,11 +1,17 @@
 #include "stm32l1xx.h"
 
 /* 
+ * NAME
+ * ----
+ *
  * enable_button(), button_pressed()
  *
+ * DESCRIPTION
+ * -----------
+ *
  * The STM32L Discovery contains a USER button.
- * This functions enables it so it can be tested
- * to see if it is pressed or not.
+ * These functions enable it and then allow it
+ * to be tested to see if it pressed or not.
  *
  * SYNOPSIS
  * --------
