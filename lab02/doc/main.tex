@@ -274,7 +274,7 @@ Table \ref{tbl:spi} lists the options that were used.
 	MSB & first \\
 	CPOL & 0 \\
 	CPHA & 0 \\
-	SS\_L & slave select on low \\
+	SS\_L & slave select, active low \\
 	\hline
 \end{tabular}
 \caption{SPI configuration options}
@@ -391,12 +391,12 @@ results of status register are known this data must be
 manipulated in to two different formats, one for the LCD,
 and the other for the LEDs.
 
-The format for the LEDs is shown below.
+The format for the LED bar with 10 positions is shown below.
 \begin{verbatim}
      LEDS
 MSB         LSB
-8 7 6 5 4 3 2 1
----------------
+8 7 6 5 4 3 2 1 X X
+-------------------
     N V 4 3 2 1 
 \end{verbatim}
 Where \verb+N+ is 1 if it is negative and 0 if positive.
@@ -424,6 +424,7 @@ these bits there are two possibilities (button pressed/released)
 this results in 512 possible combinations ($2 \cdot 2^8$).
 
 \begin{table}
+\center
 \begin{tabular}{|c c|c c|c c|}
 \hline
 \multicolumn{2}{|c}{\textbf{switches}} & \multicolumn{2}{|c|}{\textbf{LEDs}}       & \multicolumn{2}{c|}{\textbf{LCD}} \\
