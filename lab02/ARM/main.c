@@ -59,10 +59,10 @@ void main() {
 #define LOWER_4_BITS 0x0000000F
 #define UPPER_4_BITS 0x000000F0
 // overflow and sign bitmask (from saddsub)
-#define V_BIT 0x000000000010
-#define N_BIT 0x000000000020
+#define V_BIT 0x00000010
+#define N_BIT 0x00000020
 // bitmask for number portion of result from saddsub
-#define NUM 0x00000000000F
+#define NUM 0x0000000F
 
 
 	// {{{ ### INITIALIZATION ###
