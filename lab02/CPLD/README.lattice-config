@@ -1,4 +1,7 @@
 
+The following describes the configuration options
+used when configuring the Lattice MachXO CPLD.
+
 CPLD configuration
 ------------------
 
@@ -34,3 +37,4 @@ USB2, FTUSB-0
 
 If Windows "detects new hardware" and wants to
 install new ones cancel it.
+
