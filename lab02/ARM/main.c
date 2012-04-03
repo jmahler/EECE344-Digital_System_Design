@@ -40,8 +40,15 @@ void main() {
     // variables used for calculations
     uint32_t numA;
     uint32_t numB;
-    uint32_t res;       // calculation result
-    uint32_t prev_res;	// previous calculation result
+	// calculation result
+    uint32_t res;
+	// previous calculation result
+    uint32_t prev_res = 0xFFFF0000;	
+	// 'prev_res' is used to only refesh LCD when
+	// 'res' has changed.
+	// It is initialized at some impossible value
+	// so that it will not be equal to 'res', and
+	// so the LCD will be refreshed on startup/reset.
 
 	// extracted values for LCD
     unsigned char sign;
@@ -54,6 +61,7 @@ void main() {
 // overflow and sign bitmask (from saddsub)
 #define V_BIT 0x000000000010
 #define N_BIT 0x000000000020
+// bitmask for number portion of result from saddsub
 #define NUM 0x00000000000F
 
 
