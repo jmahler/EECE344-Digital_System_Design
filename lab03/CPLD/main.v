@@ -33,5 +33,8 @@ module main(
 	wire [7:0] n_in_sw;
 	assign n_in_sw = ~(in_sw);  // negated in_sw
 
-	SPI_slave SPI_slave1(rst_l, ss_l, sclk, mosi, miso, led_ext, n_in_sw);
+	wire [7:0] n_led_ext;
+	assign led_ext = ~(n_led_ext);  // negated outputs
+
+	SPI_slave SPI_slave1(rst_l, ss_l, sclk, mosi, miso, n_led_ext, n_in_sw);
 endmodule
