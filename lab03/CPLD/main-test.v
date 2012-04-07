@@ -62,6 +62,7 @@ module test;
 
 	// The mosi_val defines what is sent to the slave
 	// on the mosi line.
+	// This should end up on 'led_ext'
 	wire [7:0] mosi_val;
 	assign mosi_val = 8'h4f;
 
