@@ -2,7 +2,7 @@
  * NAME
  * ----
  *
- *   main.v - main slave module for Lab 2 of EECE 344
+ *   main.v - SPI slave, switch input, LED display
  *
  * DESCRIPTION
  * -----------

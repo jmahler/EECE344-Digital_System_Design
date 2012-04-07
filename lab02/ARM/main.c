@@ -1,3 +1,36 @@
+/*
+ * NAME
+ * ----
+ *
+ * main.c
+ *
+ * DESCRIPTION
+ * -----------
+ *
+ * This code serves several purposes.
+ *
+ * - It acts as an SPI master and sends/receives data.
+ *
+ * - It assumes the 8-bit data it receives is two 4-bit
+ *   unsigned numbers.
+ *
+ * - It performs addition of the USER button is released
+ *   and subtraction if pressed.
+ *
+ * - It display the result on the LCD as an unsigned number
+ *   and it also includes the negative and overflow flags.
+ * 
+ * - It sends the 8-bit result through the SPI.
+ *
+ * More detailed descriptions can be found in the documentation
+ * included with this project or in the source code.
+ *
+ * AUTHOR
+ * ------
+ *
+ * Jeremiah Mahler <jmmahler@gmail.com>
+ *
+ */
 
 #include "stm32l1xx.h"
 #include "stdio.h"
@@ -40,8 +73,15 @@ void main() {
     // variables used for calculations
     uint32_t numA;
     uint32_t numB;
-    uint32_t res;       // calculation result
-    uint32_t prev_res;	// previous calculation result
+	// calculation result
+    uint32_t res;
+	// previous calculation result
+    uint32_t prev_res = 0xFFFF0000;	
+	// 'prev_res' is used to only refesh LCD when
+	// 'res' has changed.
+	// It is initialized at some impossible value
+	// so that it will not be equal to 'res', and
+	// so the LCD will be refreshed on startup/reset.
 
 	// extracted values for LCD
     unsigned char sign;
@@ -52,9 +92,10 @@ void main() {
 #define LOWER_4_BITS 0x0000000F
 #define UPPER_4_BITS 0x000000F0
 // overflow and sign bitmask (from saddsub)
-#define V_BIT 0x000000000010
-#define N_BIT 0x000000000020
-#define NUM 0x00000000000F
+#define V_BIT 0x00000010
+#define N_BIT 0x00000020
+// bitmask for number portion of result from saddsub
+#define NUM 0x0000000F
 
 
 	// {{{ ### INITIALIZATION ###
