@@ -1,4 +1,5 @@
 
+# output for use with Gtkwave
 output.vcd: a.out
 	./a.out
 

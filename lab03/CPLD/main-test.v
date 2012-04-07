@@ -42,8 +42,8 @@
 
 // Reset used in Lattice MachXO CPLD
 // Defined the module here to never reset.
-module GSR(output wire GSR);
-	assign GSR = 1;
+module GSR(input wire GSR);
+	//assign GSR = 1;
 	//GSR GSR_INST(.GSR(reset));
 endmodule
 
@@ -51,20 +51,25 @@ module test;
 
 	reg sclk;
 
-	reg reset;
-	reg SS_L;
-	reg MOSI;
-	wire MISO;
+	reg rst_l;
+	reg ss_l;
+	reg mosi;
+	wire miso;
 	wire [7:0] led_ext;
 	wire [7:0] in_sw;
-	wire [7:0] led;
 
-	main m1(reset, SS_L, sclk, MOSI, MISO, led_ext, in_sw, led);
+	main m1(rst_l, ss_l, sclk, mosi, miso, led_ext, in_sw);
 
+	// The mosi_val defines what is sent to the slave
+	// on the mosi line.
 	wire [7:0] mosi_val;
 	assign mosi_val = 8'h4f;
 
-	assign in_sw = 8'hb7;
+	// The input switches define what the slave
+	// will send to us, the master, on the miso line.
+	// Due to board characteristics of the Lattice MachXO
+	// the value is inverted.
+	assign in_sw = ~(8'hb7);
 
 	reg [4:0] i;
 
@@ -73,26 +78,30 @@ module test;
 		$dumpvars(0,test);
 
 		/*
-		 * This section generates a sequence of an SPI master.
-		 * The value to be output is stored in 'mosi_val'.
+		 * This section generates a sequence as an SPI master.
+		 * The value to be output is defined in 'mosi_val'.
 		 *
 		 * It outputs the MSB first and is defined with CPOL = 0 and CPHA = 0.
 		 */
 
-		reset = 0;  // not reset
+		rst_l = 1; // not reset
 		sclk = 0;  // CPOL = 0 -> start clock at 0
-		MOSI = 0;
+		mosi = 0;  // any default value
 
 		// This is needed for the slave since it loads its
 		// write register when the sclk goes low while it is
 		// disabled.
-		SS_L = 1; // disabled;
+		ss_l = 1; // disabled;
 		#1 sclk = 1;
 		#1 sclk = 0;
-		#1 SS_L = 0; // enabled;
+		#1 ss_l = 0; // enabled;
 
-		MOSI = mosi_val[7];
+		// We are ready to perform a full 8-bit cycle
 
+		// assign the first value
+		mosi = mosi_val[7];
+
+		// and finish the remaining 7 bits
 		i = 7;
 		repeat (7) begin
 			i = i - 1;
@@ -102,14 +111,17 @@ module test;
 			#1;
 			// propagate
 			sclk = 0;
-			MOSI = mosi_val[i];
+			mosi = mosi_val[i];
 		end
-
 		#1 sclk = 1;
 
-		#1;
-		SS_L = 1; // disable
-		sclk = 0;
+		// At this point, the master has sampled all its points.
+		// The slave has sampled all as well, but another propagate
+		// is needed to shift the register one more time.
+		// This can be done while it is disabled (ss_l = 1).
+
+		#1 ss_l = 1; // disable
+		#1 sclk = 0; // CPOL = 0
 		#1;
 
 		$finish;
