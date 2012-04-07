@@ -1,4 +1,7 @@
 
+output.vcd: a.out
+	./a.out
+
 a.out: main-test.v
 	iverilog $<
 
