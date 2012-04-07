@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE		ispXCF	SYSTEM	"IspXCF.dtd" >
+<ispXCF version="1.4">
+	<Comment></Comment>
+	<Chain>
+		<Comm>JTAG</Comm>
+		<Device>
+			<SelectedProg value="TRUE"/>
+			<Pos>1</Pos>
+			<Vendor>Lattice</Vendor>
+			<Family>MachXO</Family>
+			<Name>LCMXO2280C</Name>
+			<IDCode>0x0128d043</IDCode>
+			<Package>All</Package>
+			<PON>LCMXO2280C</PON>
+			<Bypass>
+				<InstrLen>8</InstrLen>
+				<InstrVal>11111111</InstrVal>
+				<BScanLen>1</BScanLen>
+				<BScanVal>0</BScanVal>
+			</Bypass>
+			<File>C:/ihatewindows/344/lab02/CPLD/lattice-project/main/main_main.jed</File>
+			<FileTime>3/30/2012 7:22:30</FileTime>
+			<JedecChecksum>0x19FC</JedecChecksum>
+			<Operation>FLASH Erase,Program,Verify</Operation>
+			<Option>
+				<SVFVendor>JTAG STANDARD</SVFVendor>
+				<IOState>HighZ</IOState>
+				<PreloadLength>544</PreloadLength>
+				<IOVectorData>0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF</IOVectorData>
+				<OverideUES value="TRUE"/>
+				<TCKFrequency>1.000000 MHz</TCKFrequency>
+				<SVFProcessor>ispVM</SVFProcessor>
+				<Usercode>0x00000000</Usercode>
+				<AccessMode>FLASH</AccessMode>
+			</Option>
+		</Device>
+	</Chain>
+	<ProjectOptions>
+		<Program>SEQUENTIAL</Program>
+		<Process>ENTIRED CHAIN</Process>
+		<OperationOverride>No Override</OperationOverride>
+		<StartTAP>TLR</StartTAP>
+		<EndTAP>TLR</EndTAP>
+		<VerifyUsercode value="FALSE"/>
+	</ProjectOptions>
+	<CableOptions>
+		<CableName>USB2</CableName>
+		<PortAdd>FTUSB-0</PortAdd>
+		<JTAGPinSetting>
+			TRST	LOW;
+			ISPEN	LOW;
+		</JTAGPinSetting>
+		<TRSTConnect value="TRUE"/>
+		<ISPENConnect value="TRUE"/>
+	</CableOptions>
+</ispXCF>

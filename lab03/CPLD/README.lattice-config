@@ -1,0 +1,40 @@
+
+The following describes the configuration options
+used when configuring the Lattice MachXO CPLD.
+
+CPLD configuration
+------------------
+
+Lattice MachXO
+
+LCMXO2280C
+LCMXO2280C-3FT256C
+
+(spreadsheet view)
+------------------
+IO_TYPE: LVCMOS33
+
+PULLMODE: UP(UP)
+
+on board LED pins
+-----------------
+LED   	Pin		Pad Name
+---		---		--------
+7		R14		FIO:PB14D
+6		T14		FIO:PB15A
+5		T15		FIO:PB15B
+4		P14		FIO:PB15D
+3		R15		FIO:PB16A
+2		R16		FIO:PB16B
+1		P15		FIO:PB16C
+0		P16		FIO:PB16D
+
+
+Programmer
+----------
+
+USB2, FTUSB-0
+
+If Windows "detects new hardware" and wants to
+install new ones cancel it.
+
