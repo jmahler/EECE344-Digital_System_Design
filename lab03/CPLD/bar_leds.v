@@ -79,7 +79,9 @@ module bar_leds(
 	// current value of leds
 	reg [8:1] cur_leds;
 
-	assign leds = cur_leds;
+	assign leds = ~(cur_leds);
+    // Inverted to compensate for hardware pull up/down design
+    // so that a 1 is on and 0 is off.
 
 	assign data = (ce) ? cur_leds : 8'bz;
 

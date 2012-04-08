@@ -21,16 +21,16 @@
 
 module test;
 
-	wire ce_l;
+	wire ce;
 	wire [8:1] data;
 	wire rw;
 	wire [8:1] leds;
 
-	bar_leds bar_leds1(ce_l, data, rw, leds);
+	bar_leds bar_leds1(ce, data, rw, leds);
 
 	// registers for assigning to wires
-	reg ce_lr;
-	assign ce_l = ce_lr;
+	reg cer;
+	assign ce = cer;
 
 	reg rwr;
 	assign rw = rwr;

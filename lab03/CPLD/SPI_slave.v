@@ -29,10 +29,20 @@
  *  to determine when to initialize the data because ss_l was
  *  the same value when it is sampling/propagating.
  *  
+ *  The incoming transaction isn't complete until the final
+ *  SCLK goes low which can occur at or after the SS_L goes high.
+ *
+ *                +-----------
+ *  SS_L  ________|
+ *
+ *           +-------+
+ *  SCLK  ___|       |________
+ *
+ *
  * AUTHOR
  * ------
  *
- * Jeremiah Mahler <jmmahler@gmail.com>
+ *   Jeremiah Mahler <jmmahler@gmail.com>
  *
  */
 
@@ -65,8 +75,8 @@ module SPI_slave(
 	always @(negedge sclk or negedge rst_l) begin
 		if (~rst_l) begin
 			// RESET
-			r_reg <= 8'b0;
-			out_reg <= 8'b0;
+			r_reg <= 8'h00;
+			out_reg <= 8'h00;
 		end else begin
 			if (ss_l) begin
 				// COMPLETE READ/WRITE

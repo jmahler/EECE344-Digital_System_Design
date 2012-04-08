@@ -49,6 +49,12 @@ endmodule
 
 module test;
 
+	// 8-bit commands received from SPI on spi_rx
+	// (refer to main.v for a description of this value)
+	parameter CMD_EMPTY = 8'h00;
+	parameter CMD_RESET = 8'h01;
+	parameter CMD_LOAD  = 8'h02;
+
 	reg sclk;
 
 	reg rst_l;
@@ -60,17 +66,14 @@ module test;
 
 	main m1(rst_l, ss_l, sclk, mosi, miso, led_ext, in_sw);
 
-	// The mosi_val defines what is sent to the slave
-	// on the mosi line.
-	// This should end up on 'led_ext'
-	wire [7:0] mosi_val;
-	assign mosi_val = 8'h4f;
+	// data to be written to the slave
+	reg [7:0] w_mosi;
 
 	// The input switches define what the slave
 	// will send to us, the master, on the miso line.
 	// Due to board characteristics of the Lattice MachXO
 	// the value is inverted.
-	assign in_sw = ~(8'hb7);
+	assign in_sw = 8'h80; // read 0x00
 
 	reg [4:0] i;
 
@@ -78,16 +81,14 @@ module test;
 		$dumpfile("output.vcd");
 		$dumpvars(0,test);
 
-		/*
-		 * This section generates a sequence as an SPI master.
-		 * The value to be output is defined in 'mosi_val'.
-		 *
-		 * It outputs the MSB first and is defined with CPOL = 0 and CPHA = 0.
-		 */
-
 		rst_l = 1; // not reset
 		sclk = 0;  // CPOL = 0 -> start clock at 0
 		mosi = 0;  // any default value
+
+		// manually reset the SPI
+		#1 rst_l = 0; // reset
+		#1;
+		#1 rst_l = 1;
 
 		// This is needed for the slave since it loads its
 		// write register when the sclk goes low while it is
@@ -96,11 +97,17 @@ module test;
 		#1 sclk = 1;
 		#1 sclk = 0;
 		#1 ss_l = 0; // enabled;
+		#1 ss_l = 1; // disabled;
 
-		// We are ready to perform a full 8-bit cycle
+		// start by sending CMD_EMPTY
 
-		// assign the first value
-		mosi = mosi_val[7];
+		w_mosi = CMD_RESET;
+
+		// ### SPI START ###
+		//
+		// enable SPI and assign the first value
+		#1 ss_l = 0;
+		 mosi = w_mosi[7];
 
 		// and finish the remaining 7 bits
 		i = 7;
@@ -112,20 +119,104 @@ module test;
 			#1;
 			// propagate
 			sclk = 0;
-			mosi = mosi_val[i];
+			mosi = w_mosi[i];
 		end
 		#1 sclk = 1;
 
-		// At this point, the master has sampled all its points.
-		// The slave has sampled all as well, but another propagate
-		// is needed to shift the register one more time.
-		// This can be done while it is disabled (ss_l = 1).
+		#1 ss_l = 1; // disable
+		   sclk = 0; // CPOL = 0
+		// ### SPI END ###
+
+		// everything should be cleared/reset at this point
+
+		w_mosi = CMD_LOAD;
+
+		// ### SPI START ###
+		//
+		// enable SPI and assign the first value
+		#1 ss_l = 0;
+		 mosi = w_mosi[7];
+
+		// and finish the remaining 7 bits
+		i = 7;
+		repeat (7) begin
+			i = i - 1;
+			#1;
+			// sample
+			sclk = 1;
+			#1;
+			// propagate
+			sclk = 0;
+			mosi = w_mosi[i];
+		end
+		#1 sclk = 1;
 
 		#1 ss_l = 1; // disable
-		#1 sclk = 0; // CPOL = 0
-		#1;
+		   sclk = 0; // CPOL = 0
+		// ### SPI END ###
 
-		$finish;
+		w_mosi = CMD_LOAD;
+		/*
+		w_mosi = 8'hff;  // some erroneous command
+		// This should result in STATE_ERROR and RETURN_ERROR_UNKNOWN_CMD
+		*/
+
+		// ### SPI START ###
+		//
+		// enable SPI and assign the first value
+		#1 ss_l = 0;
+		 mosi = w_mosi[7];
+
+		// and finish the remaining 7 bits
+		i = 7;
+		repeat (7) begin
+			i = i - 1;
+			#1;
+			// sample
+			sclk = 1;
+			#1;
+			// propagate
+			sclk = 0;
+			mosi = w_mosi[i];
+		end
+		#1 sclk = 1;
+
+		#1 ss_l = 1; // disable
+		   sclk = 0; // CPOL = 0
+		// ### SPI END ###
+
+
+		/*
+		w_mosi = CMD_LOAD;
+
+		// ### SPI START ###
+		//
+		// enable SPI and assign the first value
+		#1 ss_l = 0;
+		 mosi = w_mosi[7];
+
+		// and finish the remaining 7 bits
+		i = 7;
+		repeat (7) begin
+			i = i - 1;
+			#1;
+			// sample
+			sclk = 1;
+			#1;
+			// propagate
+			sclk = 0;
+			mosi = w_mosi[i];
+		end
+		#1 sclk = 1;
+
+		#1 ss_l = 1; // disable
+		   sclk = 0; // CPOL = 0
+		// ### SPI END ###
+*/
+
+
+
+		#1 $finish;
 	end
 endmodule
 
