@@ -34,23 +34,27 @@ module main(
 
 	// ### MODULE AND BUS DEFINITION ###
 
+	// ADDRESS
 	wire [8:1] addr;
-	inout [8:1] data;
-	// control
+
+	// DATA
+	wire [8:1] data;
+	// reg for writing to data
+	reg [8:1] w_data;
+	assign data = w_data;
+
+	// CONTROL
 	wire [5:1] enable;  // chip enable
 
 	// reg for writing to enable wires
 	reg [5:1] w_enable;
 	assign enable = w_enable;
 
-	// reg for writing to data
-	reg [8:1] w_data;
-	assign data = w_data;
-
 	wire rw; // read = 1, write = 0
 	parameter READ = 1'b1;
 	parameter WRITE = 1'b0;
 
+	// reg for writing to rw wire
 	reg w_rw;
 	assign rw = w_rw;
 
