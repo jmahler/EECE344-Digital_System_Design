@@ -12,8 +12,8 @@
  * And for each rising edge of sclk it samples a value (mosi)
  * and on each falling edge it propagates the received value
  * and updates the miso value.
- * The data it outputs is defined by 'out_reg'.
- * And the data it receives is stored in 'in_reg'.
+ * The data it outputs is defined by 'spi_tx'.
+ * And the data it receives is stored in 'spi_rx'.
  *
  * The following SPI settings used by this module:
  *
@@ -52,8 +52,8 @@ module SPI_slave(
 	input wire sclk,
 	input wire mosi,
 	output wire miso,
-	output reg [7:0] out_reg,
-	input wire [7:0] in_reg
+	output reg [7:0] spi_rx,  // data received
+	input wire [7:0] spi_tx    // data to be sent
 	);
 
 	// read register and next read register
@@ -76,14 +76,14 @@ module SPI_slave(
 		if (~rst_l) begin
 			// RESET
 			r_reg <= 8'h00;
-			out_reg <= 8'h00;
+			spi_rx <= 8'h00;
 		end else begin
 			if (ss_l) begin
 				// COMPLETE READ/WRITE
 
 				// reset when sclk falls while ss_l is high (disabled)
-				r_reg <= in_reg;   // data to output on miso
-				out_reg <= r_next; // last complete read
+				r_reg <= spi_tx;   // data to output on miso
+				spi_rx <= r_next; // last complete read
 				// use r_next (not r_reg) so we don't miss the last mosi (SAMPLE)
 			end else begin
 				// PROPAGATE

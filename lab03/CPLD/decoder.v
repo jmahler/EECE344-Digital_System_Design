@@ -10,14 +10,14 @@
  * This is a specialize 8 to 5 decoder designed
  * to map the following addresses.
  *
- *    address (hex) | output (binary)
- *  ---------------------------------
- *   0x74           |   00001
- *   0x6C           |   00010
- *   0x50 - 0x5F    |   00100
- *   0x2F           |   01000
- *   0x00 - 0x0F    |   10000
- *   (default)      |   00000
+ *    address (hex) | output   |   device
+ *  ---------------------------+-------+-----------
+ *   0x74           |   00001  |  switches
+ *   0x6C           |   00010  |  bar LEDs
+ *   0x50 - 0x5F    |   00100  |  RAM 2
+ *   0x2F           |   01000  |  CPLD LEDs
+ *   0x00 - 0x0F    |   10000  |  RAM 1
+ *   (default)      |   00000  |  (none)
  *
  * AUTHOR
  * ------
@@ -28,9 +28,9 @@
 
 module decoder(
 	input wire [8:1] addr, // address
-	output wire [5:1] out); // output
+	output wire [5:1] enable);
 
-	assign out =  (addr == 8'h74) ? 5'b00001 :
+	assign enable =  (addr == 8'h74) ? 5'b00001 :
                   (addr == 8'h6c) ? 5'b00010 :
                   (addr >= 8'h50 && addr <= 8'h5F) ? 5'b00100 :
                   (addr == 8'h2f) ? 5'b01000 :

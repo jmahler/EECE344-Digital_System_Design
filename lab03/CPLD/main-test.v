@@ -62,7 +62,7 @@ module test;
 	reg mosi;
 	wire miso;
 	wire [7:0] led_ext;
-	wire [7:0] in_sw;
+	wire [8:1] in_sw;
 
 	main m1(rst_l, ss_l, sclk, mosi, miso, led_ext, in_sw);
 
@@ -73,7 +73,7 @@ module test;
 	// will send to us, the master, on the miso line.
 	// Due to board characteristics of the Lattice MachXO
 	// the value is inverted.
-	assign in_sw = 8'h80; // read 0x00
+	assign in_sw = ~(8'h80); // read 0x00
 
 	reg [4:0] i;
 
@@ -93,15 +93,16 @@ module test;
 		// This is needed for the slave since it loads its
 		// write register when the sclk goes low while it is
 		// disabled.
-		ss_l = 1; // disabled;
-		#1 sclk = 1;
-		#1 sclk = 0;
-		#1 ss_l = 0; // enabled;
+		//ss_l = 1; // disabled;
+		//#1 sclk = 1;
+		//#1 sclk = 0;
+		//#1 ss_l = 0; // enabled;
 		#1 ss_l = 1; // disabled;
 
 		// start by sending CMD_EMPTY
 
-		w_mosi = CMD_RESET;
+		// read address 0x74, the switches
+		w_mosi = 8'hF4;
 
 		// ### SPI START ###
 		//
@@ -126,9 +127,98 @@ module test;
 		#1 ss_l = 1; // disable
 		   sclk = 0; // CPOL = 0
 		// ### SPI END ###
+
+		// do it a second time since the result is delayed
+		// read address 0x00, MSB is read/write flag
+		w_mosi = 8'hF4;
+
+		// ### SPI START ###
+		//
+		// enable SPI and assign the first value
+		#1 ss_l = 0;
+		 mosi = w_mosi[7];
+
+		// and finish the remaining 7 bits
+		i = 7;
+		repeat (7) begin
+			i = i - 1;
+			#1;
+			// sample
+			sclk = 1;
+			#1;
+			// propagate
+			sclk = 0;
+			mosi = w_mosi[i];
+		end
+		#1 sclk = 1;
+
+		#1 ss_l = 1; // disable
+		   sclk = 0; // CPOL = 0
+		// ### SPI END ###
+
+
+		// do it a second time since the result is delayed
+		// read address 0x00, MSB is read/write flag
+		w_mosi = 8'hF3;
+
+		// ### SPI START ###
+		//
+		// enable SPI and assign the first value
+		#1 ss_l = 0;
+		 mosi = w_mosi[7];
+
+		// and finish the remaining 7 bits
+		i = 7;
+		repeat (7) begin
+			i = i - 1;
+			#1;
+			// sample
+			sclk = 1;
+			#1;
+			// propagate
+			sclk = 0;
+			mosi = w_mosi[i];
+		end
+		#1 sclk = 1;
+
+		#1 ss_l = 1; // disable
+		   sclk = 0; // CPOL = 0
+		// ### SPI END ###
+
+
+		// do it a second time since the result is delayed
+		// read address 0x00, MSB is read/write flag
+		w_mosi = 8'hF4;
+
+		// ### SPI START ###
+		//
+		// enable SPI and assign the first value
+		#1 ss_l = 0;
+		 mosi = w_mosi[7];
+
+		// and finish the remaining 7 bits
+		i = 7;
+		repeat (7) begin
+			i = i - 1;
+			#1;
+			// sample
+			sclk = 1;
+			#1;
+			// propagate
+			sclk = 0;
+			mosi = w_mosi[i];
+		end
+		#1 sclk = 1;
+
+		#1 ss_l = 1; // disable
+		   sclk = 0; // CPOL = 0
+		// ### SPI END ###
+
+
 
 		// everything should be cleared/reset at this point
 
+		/*
 		w_mosi = CMD_LOAD;
 
 		// ### SPI START ###
@@ -156,11 +246,13 @@ module test;
 		// ### SPI END ###
 
 		w_mosi = CMD_LOAD;
+		*/
 		/*
 		w_mosi = 8'hff;  // some erroneous command
 		// This should result in STATE_ERROR and RETURN_ERROR_UNKNOWN_CMD
 		*/
 
+	   /*
 		// ### SPI START ###
 		//
 		// enable SPI and assign the first value
@@ -184,6 +276,7 @@ module test;
 		#1 ss_l = 1; // disable
 		   sclk = 0; // CPOL = 0
 		// ### SPI END ###
+		*/
 
 
 		/*

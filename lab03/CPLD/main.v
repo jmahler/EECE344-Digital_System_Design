@@ -28,7 +28,7 @@ module main(
 	input wire mosi,
 	output wire miso,
 	output wire [7:0] led_ext,
-	input wire [7:0] in_sw
+	input wire [8:1] in_sw
 	);
 
 
@@ -37,40 +37,37 @@ module main(
 	// ADDRESS
 	wire [8:1] addr;
 	reg [8:1] w_addr;
-	assign w_addr = addr;
+	assign addr = w_addr;
 
 	// DATA
 	wire [8:1] data;
 	// reg for writing to data
-	reg [8:1] w_data;
-	assign data = w_data;
+	//reg [8:1] w_data;
+	//assign data = w_data;
 
 	// CONTROL
 	wire [5:1] enable;  // chip enable
 
-	// reg for writing to enable wires
-	reg [5:1] w_enable;
-	assign enable = w_enable;
-
 	wire rw; // read = 1, write = 0
 	parameter READ = 1'b1;
 	parameter WRITE = 1'b0;
-
 	// reg for writing to rw wire
 	reg w_rw;
 	assign rw = w_rw;
 
 	GSR GSR_INST(.GSR(rst_l));
 
-	wire [8:1] spi_rx; // received data
-	reg [8:1] spi_tx;  // data to transmit
+	wire [8:1] spi_rx; // data received from master
+	reg [8:1] spi_tx;  // data to transmit to master
 	SPI_slave SPI_slave1(rst_l, ss_l, sclk, mosi, miso, spi_rx, spi_tx);
 
 	decoder decoder1(addr, enable);
 
-	bar_leds bar_leds1(enable[2], data, rw, led_ext);
+	//bar_leds bar_leds1(enable[2], data, rw, led_ext);
 
 	switches switches1(enable[1], data, rw, in_sw);
+
+	//memory memory1(enable[3], data, address, rw);
 
 
 	// ### MAIN ###
@@ -80,9 +77,6 @@ module main(
 	parameter STATE_READY  = 3'b001;
 	parameter STATE_LOADED = 3'b010;
 	parameter STATE_ERROR  = 3'b111;
-
-	reg [8:1] r_addr; // register for address
-	assign addr = r_addr;
 
 	// 8-bit commands received from SPI on spi_rx
 	parameter CMD_EMPTY = 8'h00;
@@ -96,22 +90,20 @@ module main(
 	parameter RETURN_ERROR_WRONG_STATE = 8'h01;
 	parameter RETURN_ERROR_UNKNOWN_CMD = 8'hff;
 
-	//wire [7:0] next_r_addr;
-	//assign next_r_addr = {1'b0, in_sw[6:0]};
-	// The 1'b0 is just to fill the empty bit
-
 	// anytime new data is received
 	always @(spi_rx) begin
 
 		if (spi_rx[8] == WRITE) begin
 			// TODO
-			spi_tx <= 8'h00;  // OK
+			//spi_tx = 8'h00;  // OK
 			//w_addr <= {0, spi_rx[7:1]};
 		end else begin
 			// READ
-			r_addr <= {0, spi_rx[7:1]};
-			w_rs <= spi_rx[8];
-			spi_tx <= data;
+			//w_data = 8'bz;  // don't drive the output, let the device do this
+			w_rw   <= spi_rx[8];
+			w_addr <= {1'b0, spi_rx[7:1]};
+			spi_tx <= data;  // XXX - doesn't work
+			//spi_tx = 8'h42;  // works, but not what we want
 		end
 
 		//case (spi_rx)
