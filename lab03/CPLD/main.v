@@ -36,6 +36,8 @@ module main(
 
 	// ADDRESS
 	wire [8:1] addr;
+	reg [8:1] w_addr;
+	assign w_addr = addr;
 
 	// DATA
 	wire [8:1] data;
@@ -79,13 +81,14 @@ module main(
 	parameter STATE_LOADED = 3'b010;
 	parameter STATE_ERROR  = 3'b111;
 
-	reg [7:0] r_addr; // register for address
+	reg [8:1] r_addr; // register for address
 	assign addr = r_addr;
 
 	// 8-bit commands received from SPI on spi_rx
 	parameter CMD_EMPTY = 8'h00;
 	parameter CMD_RESET = 8'h01;
 	parameter CMD_LOAD  = 8'h02;
+	parameter CMD_READ  = 8'h03;
 
 	// 8-bit return messages to SPI (spi_tx)
 	parameter RETURN_OK = 8'h00;
@@ -93,13 +96,31 @@ module main(
 	parameter RETURN_ERROR_WRONG_STATE = 8'h01;
 	parameter RETURN_ERROR_UNKNOWN_CMD = 8'hff;
 
-	wire [7:0] next_r_addr;
-	assign next_r_addr = {1'b0, in_sw[6:0]};
+	//wire [7:0] next_r_addr;
+	//assign next_r_addr = {1'b0, in_sw[6:0]};
 	// The 1'b0 is just to fill the empty bit
 
 	// anytime new data is received
 	always @(spi_rx) begin
-		case (spi_rx)
+
+		if (spi_rx[8] == WRITE) begin
+			// TODO
+			spi_tx <= 8'h00;  // OK
+			//w_addr <= {0, spi_rx[7:1]};
+		end else begin
+			// READ
+			r_addr <= {0, spi_rx[7:1]};
+			w_rs <= spi_rx[8];
+			spi_tx <= data;
+		end
+
+		//case (spi_rx)
+			/*
+			CMD_READ: begin
+
+			end
+			*/
+				/*
 			CMD_EMPTY: begin
 				// An empty command that does nothing.
 				// It can be used by the SPI master to receive data from last
@@ -111,6 +132,19 @@ module main(
 				spi_tx <= RETURN_OK;
 				state  <= STATE_READY;
 			end
+			CMD_LOAD: begin
+				cmd <= spi_rx;
+			end
+			CMD_READ: begin
+				// read from the bus
+				if (state == STATE_LOADED) begin
+				end else begin
+					spi_tx <= RETURN_ERROR_WRONG_STATE;
+					state  <= STATE_ERROR;
+				end
+			end
+			*/
+			/*
 			CMD_LOAD: begin
 				if (state == STATE_READY) begin
 					// prepare for next read/write
@@ -129,6 +163,7 @@ module main(
 					state  <= STATE_ERROR;
 				end
 			end
+			*/
 			/*
 			CMD_EXEC: begin
 				if (state == STATE_LOADED) begin
@@ -146,11 +181,11 @@ module main(
 				end
 			end
 			*/
-		   default: begin
-				spi_tx <= RETURN_ERROR_UNKNOWN_CMD;
-				state  <= STATE_ERROR;
-			end
-		endcase
+		   //default: begin
+			//	spi_tx <= RETURN_ERROR_UNKNOWN_CMD;
+			//	state  <= STATE_ERROR;
+			//end
+		//endcase
 	end
 
 endmodule
