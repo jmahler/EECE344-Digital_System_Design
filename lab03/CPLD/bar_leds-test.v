@@ -44,27 +44,35 @@ module test;
 		$dumpfile("output.vcd");
 		$dumpvars(0,test);
 
+		parameter READ = 1'b1;
+		parameter WRITE = 1'b0;
+		parameter ENABLE = 1'b1;
+		parameter DISABLE = 1'b0;
+
+		// initialize
 		#1;
-		ce_lr = 1'b1;  // disable
+		ce = DISABLE;
 		//datar = 8'h00;
 		datar = 8'bz;
 		rwr = 1;
 
-		// write
-		#1 datar = 8'h4f;
-		#1 rwr = 0;
-		#1 ce_lr = 1'b0;  // enable
+		// ### WRITE ###
+		// IMPORTANT - Nothing else should be driving the bus or else
+		// bad things could happen.
+		#1 datar = 8'h4f; // start driving the outputs
+		#1 rwr = WRITE;
+		#1 ce = ENABLE;   // enable, triggers a write
+		// value should have been written
+		#1 ce = DISABLE;
+		  datar = 8'hz;  // stop driving the outputs
 
-		#1 ce_lr = 1'b1;  // disable
-
-		// read
-		#1 rwr = 1;
-		#1 ce_lr = 1'b0;  // enable
-		#1 ce_lr = 1'b1;  // disable
-
+		// ### READ ###
+		#1 rwr = READ;
+		#1 ce = ENABLE;
+		// data should be ready
 		#1 read_data = datar;
+		#1 ce = DISABLE;
 
-		#1 ce_lr = 1'b1;  // disable
 		$finish;
 	end
 endmodule
