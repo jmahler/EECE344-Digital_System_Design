@@ -86,7 +86,8 @@ module main(
 	reg [8:1] pre_addr;
 
 	// anytime new data is received
-	always @(main_spi_rx) begin
+	//always @(main_spi_rx) begin
+	always @(negedge ss_l) begin
 		if (main_spi_rx[8] == WRITE) begin
 			if (main_last_rw == WRITE) begin
 				// second transaction, get data

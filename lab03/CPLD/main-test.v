@@ -114,6 +114,7 @@ module test;
 		SPI_once();
         */
 
+
         // the bar LEDs start with an unknown value,
         // so they must be written first
 
@@ -123,15 +124,27 @@ module test;
 
         // write, data
 		//w_mosi = 8'h73;
-		w_mosi = 8'h73;
-		SPI_once();
-
-		w_mosi = 8'h6C;
+		w_mosi = 8'h00;
 		SPI_once();
 
         // form feed
 		w_mosi = 8'hFF;
 		SPI_once();
+        // at this point 'data' and 'cur_leds' should have the data value
+
+
+        /*
+        // read back the data
+        w_mosi = 8'h6C | READ;
+		SPI_once();
+
+		w_mosi = 8'hFF;
+		SPI_once();
+        */
+
+        // form feed
+		//w_mosi = 8'hFF;
+		//SPI_once();
 		//w_mosi = 8'hFF;
 		//SPI_once();
 
@@ -199,7 +212,9 @@ module test;
 		#1 sclk = 1;
 
 		#1 ss_l = 1; // disable
-		   sclk = 0; // CPOL = 0
+		#1 sclk = 0; // CPOL = 0
+        // The extended final sclk pulse is not normal,
+        // but it chaning while ss_l is high is normal.
 		end
 	endtask
     // }}}
