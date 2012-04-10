@@ -27,7 +27,7 @@
  */
 
 module decoder(
-	input wire [8:1] addr, // address
+	input wire [7:1] addr, // address
 	output wire [5:1] enable);
 
 	assign enable =  (addr == 8'h74) ? 5'b00001 :

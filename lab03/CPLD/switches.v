@@ -26,7 +26,7 @@
 
 module switches(
 	input wire switches_ce, // chip enable active high
-	output wire [8:1] switches_data,
+	inout wire [8:1] switches_data,
 	input wire switches_rw, // read = 1, write = 0  (control)
 	input wire [8:1] switches_input);
 

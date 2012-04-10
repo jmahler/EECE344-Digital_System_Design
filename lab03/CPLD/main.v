@@ -28,8 +28,8 @@ module main(
 	input wire sclk,
 	input wire mosi,
 	output wire miso,
-	output wire [8:1] led_ext,
-	input wire [8:1] in_sw,
+	output wire [7:0] led_ext,
+	input wire [7:0] in_sw,
 	// ram chip
 	output wire [16:0] ram_address_ext,
 	inout wire [7:0] ram_data_ext,
@@ -43,16 +43,16 @@ module main(
 	// ### MODULE AND BUS DEFINITION ###
 
 	// ADDRESS
-	wire [8:1] addr;
+	wire [6:0] addr;
 	// main_addr is addr writeable by main
-	reg [8:1] main_addr;
+	reg [6:0] main_addr;
 	assign addr = main_addr;
 
 	// DATA
 	wire [8:1] data;
 	// reg for writing to data
-	reg [8:1] main_data;
-	assign data = main_data;
+	//wire [8:1] main_data;
+	//assign data = main_data;
 
 	// CONTROL
 	wire [5:1] enable;  // chip enable
@@ -91,10 +91,13 @@ module main(
 	// keep track of the read/write changes
 	// so we can see two writes (addr, data)
 	reg main_last_rw;
-	always @(main_spi_rx) begin
+	always @(negedge ss_l) begin
 		main_last_rw <= main_rw;
 	end
-	reg [8:1] pre_addr;
+	reg [7:1] pre_addr;
+
+	assign data = (main_last_rw == WRITE && main_spi_rx[8] == WRITE) ?
+			main_spi_rx : 8'bz;
 
 	// anytime new data is received
 	//always @(main_spi_rx) begin
@@ -102,7 +105,6 @@ module main(
 		if (main_spi_rx[8] == WRITE) begin
 			if (main_last_rw == WRITE) begin
 				// second transaction, get data
-				main_data <= main_spi_rx;
 				main_addr <= pre_addr;  // trigger the chip enable
 			end else begin
 				// first transaction, gets the address
@@ -112,7 +114,6 @@ module main(
 		end else begin
 			// READ
 
-			main_data <= 8'bz;  // don't drive the outputs
 			main_rw   <= main_spi_rx[8];
 			main_addr <= main_next_addr;
 		end

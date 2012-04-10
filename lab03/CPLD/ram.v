@@ -22,7 +22,7 @@
 
 module ram(
 	input wire ram_ce, 		// chip enable
-	input wire [7:0] ram_address,
+	input wire [6:0] ram_address,
 	inout wire [7:0] ram_data,
 	input wire ram_rw, 		// read = 1, write = 0  (control)
 	// reset are external chip pins
@@ -41,7 +41,7 @@ module ram(
 	assign ram_address_ext[16:7] = 0;
 	assign ram_address_ext[6:0] = ram_address;
 
-	reg sample_ram_data;
+	reg [7:0] sample_ram_data;
 
 	assign ram_data = (ram_ce == 1'b1 && ram_rw == READ) ? sample_ram_data : 8'bz;
 
@@ -56,7 +56,7 @@ module ram(
 	// always @(disabled -> enabled)
 	always @(posedge ram_ce) begin
 		if (ram_rw == READ) begin
-			sample_ram_data <= ram_data_ext[7:0];
+			sample_ram_data <= ram_data_ext;
 		end
 	end
 endmodule
