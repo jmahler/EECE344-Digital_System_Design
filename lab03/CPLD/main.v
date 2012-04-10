@@ -20,6 +20,7 @@
 `include "bar_leds.v"
 `include "decoder.v"
 `include "switches.v"
+`include "ram.v"
 
 module main(
 	input wire rst_l,
@@ -28,7 +29,14 @@ module main(
 	input wire mosi,
 	output wire miso,
 	output wire [8:1] led_ext,
-	input wire [8:1] in_sw
+	input wire [8:1] in_sw,
+	// ram chip
+	output wire [16:0] ram_address_ext,
+	inout wire [7:0] ram_data_ext,
+	output wire ce_l,
+	output wire ce2,
+	output wire we_l,
+	output wire oe_l 
 	);
 
 
@@ -68,7 +76,10 @@ module main(
 
 	switches switches1(enable[1], data, rw, in_sw);
 
-	//memory memory1(enable[3], data, address, rw);
+	//ram ram2(enable[3], data, address, rw);
+
+	ram ram1(enable[5], addr, data, rw, ram_address_ext, ram_data_ext, ce_l, ce2, we_l, oe_l);
+
 
 	wire [8:1] main_next_addr;
 	assign main_next_addr = {1'b0, main_spi_rx[7:1]};

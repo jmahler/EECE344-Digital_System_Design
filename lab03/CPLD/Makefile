@@ -3,7 +3,7 @@
 output.vcd: a.out
 	./a.out
 
-a.out: main-test.v main.v SPI_slave.v bar_leds.v decoder.v switches.v
+a.out: main-test.v main.v SPI_slave.v bar_leds.v decoder.v switches.v ram.v
 	iverilog $<
 
 clean:

@@ -58,11 +58,14 @@ module test;
 	wire [8:1] led_ext;
 	wire [8:1] in_sw;
 
+	wire [16:0] ram_address_ext;
+	wire [7:0] ram_data_ext;
+
     // bitmask to set the READ bit (MSB)
     parameter READ = 8'h80;
     // for WRITE, just leave it clear
 
-	main m1(rst_l, ss_l, sclk, mosi, miso, led_ext, in_sw);
+	main m1(rst_l, ss_l, sclk, mosi, miso, led_ext, in_sw, ram_address_ext, ram_data_ext, ce_l, ce2, we_l, oe_l);
 
 	// data to be written to the slave
 	reg [8:1] w_mosi;
