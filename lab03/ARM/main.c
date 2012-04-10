@@ -60,34 +60,14 @@ void main() {
 	// send and recieve buffers for SPI
 	uint8_t SPI1_Tx;
 	uint8_t SPI1_Rx;
+	uint8_t addr;
+	uint8_t res;
 
-    /*
-     * states used in main loop
-     *
-     *  SPI_SEND_RECEIVE -> CALC_DISPLAY -> PAUSE -> SPI_SEND_RECEIVE
-     *      (start)                                       (repeat)
-     */
-    enum states {START, SPI_SEND_RECEIVE, CALC_DISPLAY, PAUSE};
+    enum states {START, SPI_SEND_RECEIVE, DISPLAY, PAUSE, SPI_MANAGER};
     char state;
 
-    // variables used for calculations
-    uint32_t numA;
-    uint32_t numB;
-	// calculation result
-    uint32_t res;
-	// previous calculation result
-    uint32_t prev_res = 0xFFFF0000;	
-	// 'prev_res' is used to only refesh LCD when
-	// 'res' has changed.
-	// It is initialized at some impossible value
-	// so that it will not be equal to 'res', and
-	// so the LCD will be refreshed on startup/reset.
-
-	// extracted values for LCD
-    unsigned char sign;
-    unsigned char sign_char;
-    unsigned char oflow;
-    uint8_t num;
+    enum states2 {START2, SW_RESULT, SW_SKIP, READ_MEM, RESULT_MEM, DONE};
+    char state2;
 
 #define LOWER_4_BITS 0x0000000F
 #define UPPER_4_BITS 0x000000F0
@@ -116,16 +96,10 @@ void main() {
 	k = 0;
 	SPI1_Tx = 0x00;  // initial data to send
 	SPI1_Rx = 0x00;  // received data is stored here
-    state = START;
+	state = START;
 
 	while (1) {
-
         if (SPI_SEND_RECEIVE == state) {
-            // If there was an SPI error, turn on the blue LED
-            if (SPI_I2S_GetFlagStatus(SPI1, SPI_FLAG_CRCERR | SPI_FLAG_MODF | SPI_I2S_FLAG_FRE)) {
-                GPIO_SetBits(GPIOB, GPIO_Pin_6);  // turn on blue LED
-            }
-
             if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY)) {
                 // kill some time
                 asm("nop");
@@ -140,8 +114,8 @@ void main() {
                 // wait if needed
                 //while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE));
 
-                // next_state
-                state = CALC_DISPLAY;
+                // next state
+                state = SPI_MANAGER;
             } else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE)) {
                 // we can transmit more data
 
@@ -151,81 +125,50 @@ void main() {
                 SPI_I2S_SendData(SPI1, SPI1_Tx);
                 while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE));
             }
-        } else if (CALC_DISPLAY == state) {
-            // ** CALCULATIONS **
+        } else if (SPI_MANAGER == state) {
+            // a full-duplex send/receive has been completed
 
-            // split the 8-bit in to two 4-bit numbers
-            // and store them in an appropriate data type.
-            // bits 1-4
-            numA = 0;
-            numA |= SPI1_Rx & LOWER_4_BITS;
-            // bits 5-8
-            numB = 0;
-            numB |= SPI1_Rx & UPPER_4_BITS;
-            // shift so it is in the lower 4 bits
-            numB = numB >> 4;
-			// numA and numB in the lower 4 bits, ready for saddsub
+            if (state2 == RESULT_MEM) {
+                res = SPI1_Rx;
 
-            // add the numbers together
-            if (button_pressed()) {
-                // subtract
-                res = saddsub(1, numA, numB);
+                state = DISPLAY;
+                state2 = DONE;
+            } else if (state2 == READ_MEM) {
+                SPI1_Tx = addr | 0x80;  // read switches
+
+                state = SPI_SEND_RECEIVE;
+                state2 = RESULT_MEM;
+            } else if (state2 == SW_RESULT) {
+                addr = SPI1_Rx;
+
+                state = SPI_SEND_RECEIVE;
+                state2 = READ_MEM;
             } else {
-                // add
-                res = saddsub(0, numA, numB);
+                // send command to read switches
+
+                SPI1_Tx = 0x74 | 0x80;  // read switches
+
+                // next state
+                state2 = SW_RESULT;
+                state = SPI_SEND_RECEIVE;
             }
+        } else if (DISPLAY == state) {
+            // ** LCD DISPLAY **
 
-			if (res == prev_res) {
-				// leave LCD as is,
-				// This helps reduce flicker since it is not always
-				// being cleared and reset
-			} else {
-				// extract the components, needed for LCD	
-				sign = (res & N_BIT) ? '1' : '0';
-				oflow = (res & V_BIT) ? '1' : '0';
-                
-                // extract only the 'number' part of the result
-				num = res & NUM;
+            // prepare the string
+            sprintf(str, "%x%c%x", addr, 'R', res);
 
-                if (0 == num)
-                    sign_char = ' ';
-                else if ('1' == sign)
-                    sign_char = '-';
-                else
-                    sign_char = '+';
+            LCD_GLASS_Clear();
+            LCD_GLASS_DisplayString((unsigned char *) str);
 
-                // If it is negative, we have to convert
-                // it to positive (2s compliment) so the LCD
-                // displays the correct value
-                // (A '-' sign is added using 'sign_char')
-                if ('1' == sign) 
-                    num = ((~num + 1) & NUM);
-                // Also, 'NUM' is used again to mask off any
-                // extra ones created by +1 which shouldn't be present
-                // in our 4-bit number.
-
-				// ** LCD DISPLAY **
-                // prepare the string
-				sprintf(str, "N%cV%c%c%u", sign, oflow, sign_char, num);
-
-				LCD_GLASS_Clear();
-				LCD_GLASS_DisplayString((unsigned char *) str);
-
-				// store to for SPI to send to CPLD to display on LEDs
-				SPI1_Tx = (uint8_t) res;
-
-				prev_res = res;
-			}
-
-            // next state
-            state = PAUSE;
+            state = PAUSE; // next state
         } else {
             // default PAUSE
             if (++k > 1e5) {
                 k = 0;
 
                 // next state
-                state = SPI_SEND_RECEIVE;
+                state = SPI_MANAGER;
             }
         }
 	}

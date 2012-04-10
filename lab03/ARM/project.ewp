@@ -1951,9 +1951,6 @@
   <file>
     <name>$PROJ_DIR$\main.c</name>
   </file>
-  <file>
-    <name>$PROJ_DIR$\saddsub.s</name>
-  </file>
 </project>
 
 

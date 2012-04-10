@@ -12,12 +12,12 @@
           
           
           
-        <Column0>140</Column0><Column1>27</Column1><Column2>27</Column2><Column3>27</Column3></ColumnWidths>
+        <Column0>169</Column0><Column1>27</Column1><Column2>27</Column2><Column3>27</Column3></ColumnWidths>
       </Workspace>
     <Build><ColumnWidth0>20</ColumnWidth0><ColumnWidth1>1117</ColumnWidth1><ColumnWidth2>298</ColumnWidth2><ColumnWidth3>74</ColumnWidth3></Build><TerminalIO/><Debug-Log><ColumnWidth0>20</ColumnWidth0><ColumnWidth1>1490</ColumnWidth1></Debug-Log></Static>
     <Windows>
       
-    <Wnd2>
+    <Wnd0>
         <Tabs>
           <Tab>
             <Identity>TabID-27779-1001</Identity>
@@ -29,20 +29,20 @@
           </Tab>
         </Tabs>
         
-      <SelectedTab>0</SelectedTab></Wnd2><Wnd3><Tabs><Tab><Identity>TabID-14439-8006</Identity><TabName>Build</TabName><Factory>Build</Factory><Session/></Tab><Tab><Identity>TabID-2312-19491</Identity><TabName>Debug Log</TabName><Factory>Debug-Log</Factory><Session/></Tab></Tabs><SelectedTab>0</SelectedTab></Wnd3></Windows>
+      <SelectedTab>0</SelectedTab></Wnd0><Wnd1><Tabs><Tab><Identity>TabID-14439-8006</Identity><TabName>Build</TabName><Factory>Build</Factory><Session/></Tab><Tab><Identity>TabID-2312-19491</Identity><TabName>Debug Log</TabName><Factory>Debug-Log</Factory><Session/></Tab></Tabs><SelectedTab>0</SelectedTab></Wnd1></Windows>
     <Editor>
       
       
       
       
-    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\main.c</Filename><XPos>0</XPos><YPos>47</YPos><SelStart>1193</SelStart><SelEnd>1193</SelEnd></Tab><ActiveTab>0</ActiveTab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
+    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\main.c</Filename><XPos>0</XPos><YPos>41</YPos><SelStart>1191</SelStart><SelEnd>1191</SelEnd></Tab><ActiveTab>0</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\Libraries\STM32L-DISCOVERY\stm32l_discovery_lcd.c</Filename><XPos>0</XPos><YPos>371</YPos><SelStart>11487</SelStart><SelEnd>11487</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\Libraries\STM32L1xx_StdPeriph_Driver\src\stm32l1xx_lcd.c</Filename><XPos>0</XPos><YPos>526</YPos><SelStart>21613</SelStart><SelEnd>21613</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
     <Positions>
       
       
       
       
       
-    <Top><Row0><Sizes><Toolbar-0134b020><key>iaridepm.enu1</key></Toolbar-0134b020></Sizes></Row0><Row1><Sizes/></Row1></Top><Left><Row0><Sizes><Wnd2><Rect><Top>-2</Top><Left>-2</Left><Bottom>322</Bottom><Right>214</Right><x>-2</x><y>-2</y><xscreen>98</xscreen><yscreen>105</yscreen><sizeHorzCX>127771</sizeHorzCX><sizeHorzCY>184534</sizeHorzCY><sizeVertCX>281617</sizeVertCX><sizeVertCY>569420</sizeVertCY></Rect></Wnd2></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd3><Rect><Top>-2</Top><Left>-2</Left><Bottom>203</Bottom><Right>769</Right><x>-2</x><y>-2</y><xscreen>771</xscreen><yscreen>205</yscreen><sizeHorzCX>1005215</sizeHorzCX><sizeHorzCY>360281</sizeHorzCY><sizeVertCX>127771</sizeVertCX><sizeVertCY>184534</sizeVertCY></Rect></Wnd3></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
+    <Top><Row0><Sizes><Toolbar-0134b020><key>iaridepm.enu1</key></Toolbar-0134b020></Sizes></Row0><Row1><Sizes/></Row1></Top><Left><Row0><Sizes><Wnd0><Rect><Top>-2</Top><Left>-2</Left><Bottom>406</Bottom><Right>243</Right><x>-2</x><y>-2</y><xscreen>111</xscreen><yscreen>104</yscreen><sizeHorzCX>112121</sizeHorzCX><sizeHorzCY>159754</sizeHorzCY><sizeVertCX>247475</sizeVertCX><sizeVertCY>626728</sizeVertCY></Rect></Wnd0></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd1><Rect><Top>-2</Top><Left>-2</Left><Bottom>201</Bottom><Right>992</Right><x>-2</x><y>-2</y><xscreen>994</xscreen><yscreen>203</yscreen><sizeHorzCX>1004040</sizeHorzCX><sizeHorzCY>311828</sizeHorzCY><sizeVertCX>112121</sizeVertCX><sizeVertCY>159754</sizeVertCY></Rect></Wnd1></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
   </Desktop>
 </Workspace>
 
