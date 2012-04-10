@@ -43,8 +43,8 @@ module main(
 	// DATA
 	wire [8:1] data;
 	// reg for writing to data
-	//reg [8:1] main_data;
-	//assign data = main_data;
+	reg [8:1] main_data;
+	assign data = main_data;
 
 	// CONTROL
 	wire [5:1] enable;  // chip enable
@@ -77,15 +77,30 @@ module main(
 
 	assign main_spi_tx = data;
 
+	// keep track of the read/write changes
+	// so we can see two writes (addr, data)
+	reg main_last_rw;
+	always @(main_spi_rx) begin
+		main_last_rw <= main_rw;
+	end
+	reg [8:1] pre_addr;
+
 	// anytime new data is received
 	always @(main_spi_rx) begin
 		if (main_spi_rx[8] == WRITE) begin
-			// first transaction, gets the address
-			//main_rw   <= main_spi_rx[8];
-			//main_addr <= main_next_addr;
-			// second transaction, gets the data to write
+			if (main_last_rw == WRITE) begin
+				// second transaction, get data
+				main_data <= main_spi_rx;
+				main_addr <= pre_addr;  // trigger the chip enable
+			end else begin
+				// first transaction, gets the address
+				main_rw  <= main_spi_rx[8];
+				pre_addr <= main_next_addr;
+			end
 		end else begin
 			// READ
+
+			main_data <= 8'bz;  // don't drive the outputs
 			main_rw   <= main_spi_rx[8];
 			main_addr <= main_next_addr;
 		end

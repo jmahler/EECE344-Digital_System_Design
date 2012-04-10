@@ -96,6 +96,7 @@ module test;
 		w_mosi = 8'hFF;
 		SPI_once();
 
+        /*
 		// read address 0x74 (the switches)
 		w_mosi = 8'h74 | READ;
 		SPI_once();
@@ -111,18 +112,58 @@ module test;
         // form feed
 		w_mosi = 8'hFF;
 		SPI_once();
+        */
+
+        // the bar LEDs start with an unknown value,
+        // so they must be written first
+
+        // write, address
+		w_mosi = 8'h6C;
+		SPI_once();
+
+        // write, data
+		//w_mosi = 8'h73;
+		w_mosi = 8'h73;
+		SPI_once();
+
+		w_mosi = 8'h6C;
+		SPI_once();
+
+        // form feed
+		w_mosi = 8'hFF;
+		SPI_once();
+		//w_mosi = 8'hFF;
+		//SPI_once();
+
+		//w_mosi = 8'hFF;
+		//SPI_once();
+
+        /*
+		w_mosi = 8'h6C;
+		SPI_once();
+		w_mosi = 8'h6C;
+		SPI_once();
+		w_mosi = 8'h6C;
+		SPI_once();
+        */
+
+//		w_mosi = 8'h6C;
+//		SPI_once();
+
+//		w_mosi = 8'hFF;
+//		SPI_once();
 
 		// read address 0x6C (bar leds)
-		w_mosi = 8'h6C | READ;
-		SPI_once();
+//		w_mosi = 8'h6C | READ;
+//		SPI_once();
 
-        // form feed
-		w_mosi = 8'hFF;
-		SPI_once();
+       // form feed
+//		w_mosi = 8'hFF;
+//		SPI_once();
 
-        // form feed
-		w_mosi = 8'hFF;
-		SPI_once();
+       // form feed
+//		w_mosi = 8'hFF;
+//		SPI_once();
 
 		#1 $finish;
 	end

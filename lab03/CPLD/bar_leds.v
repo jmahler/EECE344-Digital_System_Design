@@ -68,9 +68,9 @@
 
 
 module bar_leds(
-	input wire ce, // chip enable
-	inout wire [8:1] data,
-	input wire rw, // read = 1, write = 0  (control)
+	input wire bar_leds_ce, // chip enable
+	inout wire [8:1] bar_leds_data,
+	input wire bar_leds_rw, // read = 1, write = 0  (control)
 	output wire [8:1] leds);
 
 	// meaning for values of rw
@@ -84,13 +84,13 @@ module bar_leds(
     // Inverted to compensate for hardware pull up/down design
     // so that a 1 is on and 0 is off.
 
-	assign data = (ce) ? cur_leds : 8'bz;
+	assign bar_leds_data = (bar_leds_ce == 1'b1 && bar_leds_rw == READ) ? cur_leds : 8'bz;
 
 	// always @(disabled -> enabled)
-	always @(posedge ce) begin
-		if (rw == WRITE) begin
+	always @(posedge bar_leds_ce) begin
+		if (bar_leds_rw == WRITE) begin
 			// write
-			cur_leds <= data;
+			cur_leds <= bar_leds_data;
 		end
 	end
 endmodule
