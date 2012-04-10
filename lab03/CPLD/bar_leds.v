@@ -73,7 +73,8 @@ module bar_leds(
 	input wire rw, // read = 1, write = 0  (control)
 	output wire [8:1] leds);
 
-	parameter READ = 1'b1;
+	// meaning for values of rw
+	parameter READ  = 1'b1;
 	parameter WRITE = 1'b0;
 
 	// current value of leds

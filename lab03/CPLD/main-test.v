@@ -49,25 +49,23 @@ endmodule
 
 module test;
 
-	// 8-bit commands received from SPI on spi_rx
-	// (refer to main.v for a description of this value)
-	parameter CMD_EMPTY = 8'h00;
-	parameter CMD_RESET = 8'h01;
-	parameter CMD_LOAD  = 8'h02;
-
 	reg sclk;
 
 	reg rst_l;
 	reg ss_l;
 	reg mosi;
 	wire miso;
-	wire [7:0] led_ext;
+	wire [8:1] led_ext;
 	wire [8:1] in_sw;
+
+    // bitmask to set the READ bit (MSB)
+    parameter READ = 8'h80;
+    // for WRITE, just leave it clear
 
 	main m1(rst_l, ss_l, sclk, mosi, miso, led_ext, in_sw);
 
 	// data to be written to the slave
-	reg [7:0] w_mosi;
+	reg [8:1] w_mosi;
 
 	// The input switches define what the slave
 	// will send to us, the master, on the miso line.
@@ -75,7 +73,7 @@ module test;
 	// the value is inverted.
 	assign in_sw = ~(8'h80); // read 0x00
 
-	reg [4:0] i;
+	reg [5:1] i;
 
 	initial begin
 		$dumpfile("output.vcd");
@@ -84,232 +82,87 @@ module test;
 		rst_l = 1; // not reset
 		sclk = 0;  // CPOL = 0 -> start clock at 0
 		mosi = 0;  // any default value
+		ss_l = 1;
 
 		// manually reset the SPI
 		#1 rst_l = 0; // reset
-		#1;
 		#1 rst_l = 1;
 
-		// This is needed for the slave since it loads its
-		// write register when the sclk goes low while it is
-		// disabled.
-		//ss_l = 1; // disabled;
-		//#1 sclk = 1;
-		//#1 sclk = 0;
-		//#1 ss_l = 0; // enabled;
-		#1 ss_l = 1; // disabled;
 
-		// start by sending CMD_EMPTY
+        // It should take two cycles to clear out
+        // the unknowns in the SPI shift registers.
+		w_mosi = 8'h74 | READ;
+		SPI_once();
+		w_mosi = 8'hFF;
+		SPI_once();
 
-		// read address 0x74, the switches
-		w_mosi = 8'hF4;
+		// read address 0x74 (the switches)
+		w_mosi = 8'h74 | READ;
+		SPI_once();
 
-		// ### SPI START ###
-		//
-		// enable SPI and assign the first value
-		#1 ss_l = 0;
-		 mosi = w_mosi[7];
+        // "form feed", uses an impossible address
+		w_mosi = 8'hFF;
+		SPI_once();
 
-		// and finish the remaining 7 bits
-		i = 7;
-		repeat (7) begin
-			i = i - 1;
-			#1;
-			// sample
-			sclk = 1;
-			#1;
-			// propagate
-			sclk = 0;
-			mosi = w_mosi[i];
-		end
-		#1 sclk = 1;
+		// read address 0x74 (the switches)
+		w_mosi = 8'h74 | READ;
+		SPI_once();
 
-		#1 ss_l = 1; // disable
-		   sclk = 0; // CPOL = 0
-		// ### SPI END ###
+        // form feed
+		w_mosi = 8'hFF;
+		SPI_once();
 
-		// do it a second time since the result is delayed
-		// read address 0x00, MSB is read/write flag
-		w_mosi = 8'hF4;
+		// read address 0x6C (bar leds)
+		w_mosi = 8'h6C | READ;
+		SPI_once();
 
-		// ### SPI START ###
-		//
-		// enable SPI and assign the first value
-		#1 ss_l = 0;
-		 mosi = w_mosi[7];
+        // form feed
+		w_mosi = 8'hFF;
+		SPI_once();
 
-		// and finish the remaining 7 bits
-		i = 7;
-		repeat (7) begin
-			i = i - 1;
-			#1;
-			// sample
-			sclk = 1;
-			#1;
-			// propagate
-			sclk = 0;
-			mosi = w_mosi[i];
-		end
-		#1 sclk = 1;
-
-		#1 ss_l = 1; // disable
-		   sclk = 0; // CPOL = 0
-		// ### SPI END ###
-
-
-		// do it a second time since the result is delayed
-		// read address 0x00, MSB is read/write flag
-		w_mosi = 8'hF3;
-
-		// ### SPI START ###
-		//
-		// enable SPI and assign the first value
-		#1 ss_l = 0;
-		 mosi = w_mosi[7];
-
-		// and finish the remaining 7 bits
-		i = 7;
-		repeat (7) begin
-			i = i - 1;
-			#1;
-			// sample
-			sclk = 1;
-			#1;
-			// propagate
-			sclk = 0;
-			mosi = w_mosi[i];
-		end
-		#1 sclk = 1;
-
-		#1 ss_l = 1; // disable
-		   sclk = 0; // CPOL = 0
-		// ### SPI END ###
-
-
-		// do it a second time since the result is delayed
-		// read address 0x00, MSB is read/write flag
-		w_mosi = 8'hF4;
-
-		// ### SPI START ###
-		//
-		// enable SPI and assign the first value
-		#1 ss_l = 0;
-		 mosi = w_mosi[7];
-
-		// and finish the remaining 7 bits
-		i = 7;
-		repeat (7) begin
-			i = i - 1;
-			#1;
-			// sample
-			sclk = 1;
-			#1;
-			// propagate
-			sclk = 0;
-			mosi = w_mosi[i];
-		end
-		#1 sclk = 1;
-
-		#1 ss_l = 1; // disable
-		   sclk = 0; // CPOL = 0
-		// ### SPI END ###
-
-
-
-		// everything should be cleared/reset at this point
-
-		/*
-		w_mosi = CMD_LOAD;
-
-		// ### SPI START ###
-		//
-		// enable SPI and assign the first value
-		#1 ss_l = 0;
-		 mosi = w_mosi[7];
-
-		// and finish the remaining 7 bits
-		i = 7;
-		repeat (7) begin
-			i = i - 1;
-			#1;
-			// sample
-			sclk = 1;
-			#1;
-			// propagate
-			sclk = 0;
-			mosi = w_mosi[i];
-		end
-		#1 sclk = 1;
-
-		#1 ss_l = 1; // disable
-		   sclk = 0; // CPOL = 0
-		// ### SPI END ###
-
-		w_mosi = CMD_LOAD;
-		*/
-		/*
-		w_mosi = 8'hff;  // some erroneous command
-		// This should result in STATE_ERROR and RETURN_ERROR_UNKNOWN_CMD
-		*/
-
-	   /*
-		// ### SPI START ###
-		//
-		// enable SPI and assign the first value
-		#1 ss_l = 0;
-		 mosi = w_mosi[7];
-
-		// and finish the remaining 7 bits
-		i = 7;
-		repeat (7) begin
-			i = i - 1;
-			#1;
-			// sample
-			sclk = 1;
-			#1;
-			// propagate
-			sclk = 0;
-			mosi = w_mosi[i];
-		end
-		#1 sclk = 1;
-
-		#1 ss_l = 1; // disable
-		   sclk = 0; // CPOL = 0
-		// ### SPI END ###
-		*/
-
-
-		/*
-		w_mosi = CMD_LOAD;
-
-		// ### SPI START ###
-		//
-		// enable SPI and assign the first value
-		#1 ss_l = 0;
-		 mosi = w_mosi[7];
-
-		// and finish the remaining 7 bits
-		i = 7;
-		repeat (7) begin
-			i = i - 1;
-			#1;
-			// sample
-			sclk = 1;
-			#1;
-			// propagate
-			sclk = 0;
-			mosi = w_mosi[i];
-		end
-		#1 sclk = 1;
-
-		#1 ss_l = 1; // disable
-		   sclk = 0; // CPOL = 0
-		// ### SPI END ###
-*/
-
-
+        // form feed
+		w_mosi = 8'hFF;
+		SPI_once();
 
 		#1 $finish;
 	end
+
+    // {{{ SPI_once() 
+	/*
+     * SPI_once()
+     *
+     * This Verilog "task" is used to run a single SPI
+     * transaction.
+     *
+     * It modifies the global variables: ss_l, mosi, sclk
+     * And it writes to mosi whatever value is in w_mosi.
+     */
+	task SPI_once;
+		begin
+		// enable SPI and assign the first value
+		#1 ss_l = 0;
+		 mosi = w_mosi[8];
+
+		// and finish the remaining 7 bits
+		i = 8;
+		repeat (7) begin
+			i = i - 1;
+			#1;
+			// sample
+			sclk = 1;
+			#1;
+			// propagate
+			sclk = 0;
+			mosi = w_mosi[i];
+		end
+		#1 sclk = 1;
+
+		#1 ss_l = 1; // disable
+		   sclk = 0; // CPOL = 0
+		end
+	endtask
+    // }}}
+
 endmodule
 
+// vim:foldmethod=marker

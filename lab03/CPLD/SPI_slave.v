@@ -52,18 +52,18 @@ module SPI_slave(
 	input wire sclk,
 	input wire mosi,
 	output wire miso,
-	output reg [7:0] spi_rx,  // data received
-	input wire [7:0] spi_tx    // data to be sent
+	output reg [8:1] spi_rx,  // data received
+	input wire [8:1] spi_tx    // data to be sent
 	);
 
 	// read register and next read register
-	reg [7:0] r_reg;
-	wire [7:0] r_next;
+	reg [8:1] r_reg;
+	wire [8:1] r_next;
 
 	// ### main SPI control: sample, propagate ###
 
-	assign r_next = {r_reg[6:0], mosi_sample};
-	assign miso = ~(ss_l) ? r_reg[7] : 1'bz;
+	assign r_next = {r_reg[7:1], mosi_sample};
+	assign miso = ~(ss_l) ? r_reg[8] : 1'bz;
 	// set miso as long as we are enabled, otherwise set it high z
 
 	reg mosi_sample;

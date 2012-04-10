@@ -25,15 +25,14 @@
  */
 
 module switches(
-	input wire ce, // chip enable active high
-	output wire [8:1] data,
-	input wire rw, // read = 1, write = 0  (control)
-	input wire [8:1] input_switches);
+	input wire switches_ce, // chip enable active high
+	output wire [8:1] switches_data,
+	input wire switches_rw, // read = 1, write = 0  (control)
+	input wire [8:1] switches_input);
 
 	// If enabled (ce == 1) and the control signal is read (rw = 1)
 	// assign the switch data, otherwise set to high z.
-	//assign data = (ce & rw) ? (~input_switches) : 8'bz;
-	assign data = (~input_switches);
+	assign switches_data = ((switches_ce & switches_rw) == 1'b1) ? (~switches_input) : 8'bz;
     // The input switch values are inverted to compensate for
     // hardware (pull up/down) which is inverted.
 endmodule
