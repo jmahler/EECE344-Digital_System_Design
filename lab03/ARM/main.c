@@ -133,16 +133,20 @@ void main() {
 
                 state = DISPLAY;
                 state2 = DONE;
+                /*
             } else if (state2 == READ_MEM) {
-                SPI1_Tx = addr | 0x80;  // read switches
+                
 
                 state = SPI_SEND_RECEIVE;
                 state2 = RESULT_MEM;
+                */
             } else if (state2 == SW_RESULT) {
                 addr = SPI1_Rx;
 
+                SPI1_Tx = addr | 0x80;  // read memory address
+                
                 state = SPI_SEND_RECEIVE;
-                state2 = READ_MEM;
+                state2 = RESULT_MEM;
             } else {
                 // send command to read switches
 
@@ -156,7 +160,7 @@ void main() {
             // ** LCD DISPLAY **
 
             // prepare the string
-            sprintf(str, "%x%c%x", addr, 'R', res);
+            sprintf(str, "%x %c %x", addr, 'R', res);
 
             LCD_GLASS_Clear();
             LCD_GLASS_DisplayString((unsigned char *) str);
