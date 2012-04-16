@@ -115,8 +115,9 @@ module test;
 		// spi_tx == 8'hCC;  // next is COMMAND
 
 
+		/*
+		// SWITCHES
 
-		// read from switches
 		// read address 0x74 (the switches)
 		// COMMAND
 		w_mosi = 8'h74 | READ;
@@ -126,58 +127,33 @@ module test;
 		// DATA
 		w_mosi = 8'hFF;
 		SPI_once();
-
-		/*
-		w_mosi = 8'h74 | READ;
-		SPI_once();
-
-		w_mosi = 8'hFF;
-		SPI_once();
 		*/
 
-        // It should take two cycles to clear out
-        // the unknowns in the SPI shift registers.
-		//w_mosi = 8'h74 | READ;
-		//SPI_once();
-		//w_mosi = 8'hFF;
-		//SPI_once();
-        // result should be on the data line
 
-        // "form feed", uses an impossible address
-		//w_mosi = 8'hFF;
-		//SPI_once();
-
-		//w_mosi = 8'h74 | READ;
-		//SPI_once();
-
-
-		// read address 0x74 (the switches)
-		//w_mosi = 8'h74 | READ;
-		//SPI_once();
-
-        // form feed
-		//w_mosi = 8'hFF;
-		//SPI_once();
-
-
+		// EXTERNAL LEDs
+		//
         // the bar LEDs start with an unknown value,
         // so they must be written first
 
-        /*
-        // write, address
+        // write LEDs (0x6C)
+		// COMMAND
 		w_mosi = 8'h6C;
 		SPI_once();
 
-        // write, data
-		//w_mosi = 8'h73;
-		w_mosi = 8'h00;
+		// DATA
+		w_mosi = 8'h99;
+		SPI_once();
+
+		w_mosi = 8'h6C | READ;
+		SPI_once();
+
+		w_mosi = 8'hFF;
 		SPI_once();
 
         // form feed
-		w_mosi = 8'hFF;
-		SPI_once();
+		//w_mosi = 8'hFF;
+		//SPI_once();
         // at this point 'data' and 'cur_leds' should have the data value
-        */
 
         /*
         // read back the data

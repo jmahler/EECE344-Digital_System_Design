@@ -16,47 +16,8 @@
  * line is high z.
  *
  * To write, data must be assigned to 'data', 'rw' set to 0 (write),
- * and then when 'ce' goes high the value will be written.
+ * and then 'ce' set to high.
  * A similar sequence is performed for a read except that rw = 1.
- *
- * The address is not used since it has only one and the equivalent
- * result is accomplished with the chip enable.
- *
- *
- * SYNOPSIS
- * --------
- *
- * This code was take from the test bench bar_leds-test.v.
- * Refer to that module for the most up to date code.
- *  
- *  parameter READ = 1'b1;
- *  parameter WRITE = 1'b0;
- *  parameter ENABLE = 1'b1;
- *  parameter DISABLE = 1'b0;
- *  
- *  // initialize
- *  #1;
- *  ce = DISABLE;
- *  //datar = 8'h00;
- *  datar = 8'bz;
- *  rwr = 1;
- *  
- *  // ### WRITE ###
- *  // IMPORTANT - Nothing else should be driving the bus or else
- *  // bad things could happen.
- *  #1 datar = 8'h4f; // start driving the outputs
- *  #1 rwr = WRITE;
- *  #1 ce = ENABLE;   // enable, triggers a write
- *  // value should have been written
- *  #1 ce = DISABLE;
- *    datar = 8'hz;  // stop driving the outputs
- *  
- *  // ### READ ###
- *  #1 rwr = READ;
- *  #1 ce = ENABLE;
- *  // data should be ready
- *  #1 read_data = datar;
- *  #1 ce = DISABLE;
  *
  *
  * AUTHOR
@@ -68,29 +29,29 @@
 
 
 module bar_leds(
-	input wire bar_leds_ce, // chip enable
-	inout wire [8:1] bar_leds_data,
-	input wire bar_leds_rw, // read = 1, write = 0  (control)
-	output wire [8:1] leds);
+	input wire ce, // chip enable
+	inout wire [7:0] data,
+	input wire rw, // read = 1, write = 0  (control)
+	output wire [7:0] leds);
 
 	// meaning for values of rw
 	parameter READ  = 1'b1;
 	parameter WRITE = 1'b0;
 
 	// current value of leds
-	reg [8:1] cur_leds;
+	reg [7:0] cur_leds;
 
 	assign leds = ~(cur_leds);
-    // Inverted to compensate for hardware pull up/down design
-    // so that a 1 is on and 0 is off.
+    // Actual LED values are inverted to compensate for
+	// hardware pull up/down design so that a 1 is on and 0 is off.
 
-	assign bar_leds_data = (bar_leds_ce == 1'b1 && bar_leds_rw == READ) ? cur_leds : 8'bz;
+	assign data = (ce == 1'b1 && rw == READ) ? cur_leds : 8'bz;
 
 	// always @(disabled -> enabled)
-	always @(posedge bar_leds_ce) begin
-		if (bar_leds_rw == WRITE) begin
+	always @(data) begin
+		if (rw == WRITE && ce == 1'b1) begin
 			// write
-			cur_leds <= bar_leds_data;
+			cur_leds <= data;
 		end
 	end
 endmodule

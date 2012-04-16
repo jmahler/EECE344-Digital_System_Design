@@ -99,7 +99,7 @@ module main(
 	assign data = (latch_rw == WRITE) ? latch_data : 8'bz;
 
 	always begin
-		// COMMAND
+		// COMMAND received at end of SPI transaction
 		@(posedge ss_l) begin
 			// these will trigger the chip enable so data can
 			// be read, but there may be a delay before it is ready
@@ -111,7 +111,7 @@ module main(
 		@(negedge ss_l) begin
 			spi_tx <= data;
 		end
-		// DATA
+		// DATA received at end of SPI transaction
 		@(posedge ss_l) begin
 			if (latch_rw == WRITE) begin
 				latch_data <= spi_rx;
