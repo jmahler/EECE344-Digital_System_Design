@@ -55,8 +55,8 @@ module test;
 	reg ss_l;
 	reg mosi;
 	wire miso;
-	wire [8:1] led_ext;
-	wire [8:1] in_sw;
+	wire [7:0] led_ext;
+	wire [7:0] in_sw;
 
 	wire [16:0] ram_address_ext;
 	wire [7:0] ram_data_ext;
@@ -68,15 +68,15 @@ module test;
 	main m1(rst_l, ss_l, sclk, mosi, miso, led_ext, in_sw, ram_address_ext, ram_data_ext, ce_l, ce2, we_l, oe_l);
 
 	// data to be written to the slave
-	reg [8:1] w_mosi;
+	reg [7:0] w_mosi;
 
 	// The input switches define what the slave
 	// will send to us, the master, on the miso line.
 	// Due to board characteristics of the Lattice MachXO
 	// the value is inverted.
-	assign in_sw = ~(8'h80); // read 0x00
+	assign in_sw = ~(8'h55); // read 0x00
 
-	reg [5:1] i;
+	reg [4:0] i;
 
 	initial begin
 		$dumpfile("output.vcd");
@@ -85,42 +85,85 @@ module test;
 		rst_l = 1; // not reset
 		sclk = 0;  // CPOL = 0 -> start clock at 0
 		mosi = 0;  // any default value
-		ss_l = 1;
-
-		// manually reset the SPI
-		#1 rst_l = 0; // reset
-		#1 rst_l = 1;
+		ss_l = 1;  // disabled
 
 
-        // It should take two cycles to clear out
-        // the unknowns in the SPI shift registers.
-		w_mosi = 8'h74 | READ;
+		// How to sync up?
+		// Two commands are used on the SPI,
+		// COMMAND: <rw><address>
+		// DATA: <data>
+		// But it is necessary to know how the
+		// next command will be interpreted.
+		//
+		// To do this, write to some invalid address,
+		// then examine spi_tx for 8'hDD or 8'hCC.
+		// For 8'hCC, the next transaction will be a COMMAND,
+		// and similarly for DATA.
+
+		// (it will take a few transactions to clear out the invalid data)
+
+		w_mosi = 8'h7F;  // WRITE invalid address
 		SPI_once();
-		w_mosi = 8'hFF;
+
+		w_mosi = 8'h7F;
+		SPI_once();
+		// spi_tx == 8'hDD;  // next is DATA
+
+		w_mosi = 8'h7F;
 		SPI_once();
 
-        /*
+		// spi_tx == 8'hCC;  // next is COMMAND
+
+
+
+		// read from switches
 		// read address 0x74 (the switches)
-		w_mosi = 8'h74 | READ;
-		SPI_once();
-
-        // "form feed", uses an impossible address
-		w_mosi = 8'hFF;
-		SPI_once();
-
-		// read address 0x74 (the switches)
+		// COMMAND
 		w_mosi = 8'h74 | READ;
 		SPI_once();
 
         // form feed
+		// DATA
 		w_mosi = 8'hFF;
 		SPI_once();
-        */
+
+		/*
+		w_mosi = 8'h74 | READ;
+		SPI_once();
+
+		w_mosi = 8'hFF;
+		SPI_once();
+		*/
+
+        // It should take two cycles to clear out
+        // the unknowns in the SPI shift registers.
+		//w_mosi = 8'h74 | READ;
+		//SPI_once();
+		//w_mosi = 8'hFF;
+		//SPI_once();
+        // result should be on the data line
+
+        // "form feed", uses an impossible address
+		//w_mosi = 8'hFF;
+		//SPI_once();
+
+		//w_mosi = 8'h74 | READ;
+		//SPI_once();
+
+
+		// read address 0x74 (the switches)
+		//w_mosi = 8'h74 | READ;
+		//SPI_once();
+
+        // form feed
+		//w_mosi = 8'hFF;
+		//SPI_once();
 
 
         // the bar LEDs start with an unknown value,
         // so they must be written first
 
+        /*
         // write, address
 		w_mosi = 8'h6C;
 		SPI_once();
@@ -134,7 +177,7 @@ module test;
 		w_mosi = 8'hFF;
 		SPI_once();
         // at this point 'data' and 'cur_leds' should have the data value
-
+        */
 
         /*
         // read back the data
@@ -198,10 +241,10 @@ module test;
 		begin
 		// enable SPI and assign the first value
 		#1 ss_l = 0;
-		 mosi = w_mosi[8];
+		 mosi = w_mosi[7];
 
 		// and finish the remaining 7 bits
-		i = 8;
+		i = 7;
 		repeat (7) begin
 			i = i - 1;
 			#1;
@@ -213,11 +256,9 @@ module test;
 			mosi = w_mosi[i];
 		end
 		#1 sclk = 1;
+		#1 sclk = 0; // CPOL = 0
 
 		#1 ss_l = 1; // disable
-		#1 sclk = 0; // CPOL = 0
-        // The extended final sclk pulse is not normal,
-        // but it chaning while ss_l is high is normal.
 		end
 	endtask
     // }}}

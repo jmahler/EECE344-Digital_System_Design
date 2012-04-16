@@ -2,12 +2,15 @@
  * NAME
  * ----
  *
- *   main.v - TODO
+ *   main.v
  *
  * DESCRIPTION
  * -----------
  *
- * TODO
+ * This module has serveral functions.
+ * It creates the wires which defines the "bus".
+ * It instantiates the modules which are connected to the bus.
+ * And it controls the inteface between SPI and the bus.
  *  
  * AUTHOR
  * ------
@@ -28,7 +31,9 @@ module main(
 	input wire sclk,
 	input wire mosi,
 	output wire miso,
+	// external leds
 	output wire [7:0] led_ext,
+	// input switches
 	input wire [7:0] in_sw,
 	// ram chip
 	output wire [16:0] ram_address_ext,
@@ -40,82 +45,79 @@ module main(
 	);
 
 
-	// ### MODULE AND BUS DEFINITION ###
+	// ### BUS DEFINITION ###
 
 	// ADDRESS
 	wire [6:0] addr;
-	// main_addr is addr writeable by main
-	reg [6:0] main_addr;
-	assign addr = main_addr;
+	reg [6:0] latch_addr;
+	assign addr = latch_addr;
 
 	// DATA
-	wire [8:1] data;
-	// reg for writing to data
-	//wire [8:1] main_data;
-	//assign data = main_data;
+	wire [7:0] data;
 
 	// CONTROL
-	wire [5:1] enable;  // chip enable
+	wire [4:0] enable;  // chip enable, controlled by decoder
 
 	wire rw; // read = 1, write = 0
 	parameter READ = 1'b1;
 	parameter WRITE = 1'b0;
-	// reg for writing to rw wire
-	reg main_rw;
-	assign rw = main_rw;
+
+
+	// ### MODULES ###
 
 	GSR GSR_INST(.GSR(rst_l));
 
-	wire [8:1] main_spi_rx; // data received from master
-	wire [8:1] main_spi_tx;  // data to transmit to master
-	SPI_slave SPI_slave1(rst_l, ss_l, sclk, mosi, miso, main_spi_rx, main_spi_tx);
+	wire [7:0] spi_rx; // data received from master
+	reg [7:0] spi_tx;  // data to transmit to master
+	SPI_slave SPI_slave1(ss_l, sclk, mosi, miso, spi_rx, spi_tx);
 
 	decoder decoder1(addr, enable);
 
-	bar_leds bar_leds1(enable[2], data, rw, led_ext);
+	// Every module has a common interface consisting of
+	// (enable, data and rw).  Additional pins can be added
+	// if they need to connect externally and these should
+	// also be added to main (above).
+	// The addr is controlled in this module and triggers the enable.
 
-	switches switches1(enable[1], data, rw, in_sw);
-
+	bar_leds bar_leds1(enable[1], data, rw, led_ext);
+	switches switches1(enable[0], data, rw, in_sw);
+	ram ram1(enable[4], addr, data, rw, ram_address_ext, ram_data_ext, ce_l, ce2, we_l, oe_l);
 	//ram ram2(enable[3], data, address, rw);
 
-	ram ram1(enable[5], addr, data, rw, ram_address_ext, ram_data_ext, ce_l, ce2, we_l, oe_l);
-
-
-	wire [8:1] main_next_addr;
-	assign main_next_addr = {1'b0, main_spi_rx[7:1]};
 
 	// ### MAIN ###
 
-	assign main_spi_tx = data;
+	// value of the next address, excluding the rw bit
+	wire [7:0] next_addr;
+	assign next_addr = {1'b0, spi_rx[6:0]};
 
-	// keep track of the read/write changes
-	// so we can see two writes (addr, data)
-	reg main_last_rw;
-	always @(negedge ss_l) begin
-		main_last_rw <= main_rw;
-	end
-	reg [7:1] pre_addr;
+	reg [7:0] latch_data;
+	reg latch_rw;
+	assign rw = latch_rw;
 
-	assign data = (main_last_rw == WRITE && main_spi_rx[8] == WRITE) ?
-			main_spi_rx : 8'bz;
+	// If the command is a write, drive data, otherwise set to high Z
+	assign data = (latch_rw == WRITE) ? latch_data : 8'bz;
 
-	// anytime new data is received
-	//always @(main_spi_rx) begin
-	always @(negedge ss_l) begin
-		if (main_spi_rx[8] == WRITE) begin
-			if (main_last_rw == WRITE) begin
-				// second transaction, get data
-				main_addr <= pre_addr;  // trigger the chip enable
-			end else begin
-				// first transaction, gets the address
-				main_rw  <= main_spi_rx[8];
-				pre_addr <= main_next_addr;
+	always begin
+		// COMMAND
+		@(posedge ss_l) begin
+			// these will trigger the chip enable so data can
+			// be read, but there may be a delay before it is ready
+			latch_addr <= next_addr;
+			latch_rw   <= spi_rx[7];
+			spi_tx <= 8'hDD; // marker, DATA next
+		end
+		// start of next transaction, setup the data
+		@(negedge ss_l) begin
+			spi_tx <= data;
+		end
+		// DATA
+		@(posedge ss_l) begin
+			if (latch_rw == WRITE) begin
+				latch_data <= spi_rx;
+				spi_tx <= 8'hCC; // marker, COMMAND next
 			end
-		end else begin
-			// READ
-
-			main_rw   <= main_spi_rx[8];
-			main_addr <= main_next_addr;
+			// (READ) spi_tx is transmitted back
 		end
 	end
 endmodule

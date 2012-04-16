@@ -25,7 +25,7 @@ module ram(
 	input wire [6:0] ram_address,
 	inout wire [7:0] ram_data,
 	input wire ram_rw, 		// read = 1, write = 0  (control)
-	// reset are external chip pins
+	// rest are external pins
 	output wire [16:0] ram_address_ext, // external ram address pins
 	inout wire [7:0] ram_data_ext, 		// external data pins
 	output wire ce_l,  		// chip enable, active low
@@ -45,6 +45,7 @@ module ram(
 
 	// tri-state data to/from the bus
 	assign ram_data = (ram_ce == 1'b1 && ram_rw == READ) ? ram_data_ext : 8'bz;
+
 	assign ram_data_ext = ram_data_sample;
 
 	// chip enable
