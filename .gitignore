@@ -1,3 +1,14 @@
 lattice-project
 *.swp
 *~
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.vcd
+*.tar.gz
+*.zip
+log.txt
+*.pdf

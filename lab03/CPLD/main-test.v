@@ -78,10 +78,16 @@ module test;
 
 	reg [4:0] i;
 
+	reg clk;
+	always begin
+		#1 clk = ~clk;
+	end
+
 	initial begin
 		$dumpfile("output.vcd");
 		$dumpvars(0,test);
 
+		clk = 0;
 		rst_l = 1; // not reset
 		sclk = 0;  // CPOL = 0 -> start clock at 0
 		mosi = 0;  // any default value
@@ -129,7 +135,7 @@ module test;
 		SPI_once();
 		*/
 
-
+		/*
 		// EXTERNAL LEDs
 		//
         // the bar LEDs start with an unknown value,
@@ -149,56 +155,18 @@ module test;
 
 		w_mosi = 8'hFF;
 		SPI_once();
+		*/
 
-        // form feed
-		//w_mosi = 8'hFF;
-		//SPI_once();
-        // at this point 'data' and 'cur_leds' should have the data value
+		// RAM 1, addr = 0x00 - 0x0F
 
-        /*
-        // read back the data
-        w_mosi = 8'h6C | READ;
+		// COMMAND, read 0x00
+		w_mosi = 8'h00 | READ;
 		SPI_once();
 
-		w_mosi = 8'hFF;
+		// DATA
+		w_mosi = 8'h99;
 		SPI_once();
-        */
 
-        // form feed
-		//w_mosi = 8'hFF;
-		//SPI_once();
-		//w_mosi = 8'hFF;
-		//SPI_once();
-
-		//w_mosi = 8'hFF;
-		//SPI_once();
-
-        /*
-		w_mosi = 8'h6C;
-		SPI_once();
-		w_mosi = 8'h6C;
-		SPI_once();
-		w_mosi = 8'h6C;
-		SPI_once();
-        */
-
-//		w_mosi = 8'h6C;
-//		SPI_once();
-
-//		w_mosi = 8'hFF;
-//		SPI_once();
-
-		// read address 0x6C (bar leds)
-//		w_mosi = 8'h6C | READ;
-//		SPI_once();
-
-       // form feed
-//		w_mosi = 8'hFF;
-//		SPI_once();
-
-       // form feed
-//		w_mosi = 8'hFF;
-//		SPI_once();
 
 		#1 $finish;
 	end

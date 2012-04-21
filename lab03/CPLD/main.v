@@ -81,7 +81,7 @@ module main(
 
 	bar_leds bar_leds1(enable[1], data, rw, led_ext);
 	switches switches1(enable[0], data, rw, in_sw);
-	ram ram1(enable[4], addr, data, rw, ram_address_ext, ram_data_ext, ce_l, ce2, we_l, oe_l);
+	ram ram1(clk, enable[4], addr, data, rw, ram_address_ext, ram_data_ext, ce_l, ce2, we_l, oe_l);
 	//ram ram2(enable[3], data, address, rw);
 
 
@@ -111,6 +111,8 @@ module main(
 		@(negedge ss_l) begin
 			spi_tx <= data;
 		end
+		// TODO - (for RAM) don't set enable until the address and the
+		// data are ready.
 		// DATA received at end of SPI transaction
 		@(posedge ss_l) begin
 			if (latch_rw == WRITE) begin
