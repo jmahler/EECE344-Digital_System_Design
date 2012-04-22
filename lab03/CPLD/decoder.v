@@ -7,18 +7,17 @@
  * DESCRIPTION
  * -----------
  *
- * This is a specialize 8 to 5 decoder designed
- * to map the following addresses.
+ * This is a specialized decoder designed
+ * to map the 7-bit addresses to the following
+ * active low enable signals.
  *
- *    address (hex) | output   |   device
- *  ----------------+----------+-------------------
- *   0x7F           |   00000  |  (reserved)
- *   0x74           |   00001  |  switches
- *   0x6C           |   00010  |  bar LEDs
- *   0x50 - 0x5F    |   00100  |  RAM 2
- *   0x2F           |   01000  |  CPLD LEDs
- *   0x00 - 0x0F    |   10000  |  RAM 1
- *   (default)      |   00000  |  (none)
+ *    address (hex) | device
+ *  ----------------+---------------
+ *   0x74           | switch_ce_n
+ *   0x6C           | bar_led_ce_n
+ *   0x50 - 0x5F    | mem2_ce_n
+ *   0x2F           | board_led_ce_n
+ *   0x00 - 0x0F    | mem1_ce_n
  *
  * AUTHOR
  * ------
@@ -28,13 +27,27 @@
  */
 
 module decoder(
-	input wire [6:0] addr, // address
-	output wire [4:0] enable);
+    input [6:0] address,
+    output reg  bar_led_ce_n,
+                board_led_ce_n,
+                switch_ce_n,
+                mem1_ce_n,
+                mem2_ce_n);
 
-	assign enable = (addr == 8'h74) ? 5'b00001 :
-                  (addr == 8'h6c) ? 5'b00010 :
-                  (addr >= 8'h50 && addr <= 8'h5F) ? 5'b00100 :
-                  (addr == 8'h2f) ? 5'b01000 :
-                  (addr >= 8'h00 && addr <= 8'h0F) ? 5'b10000 :
-                  5'b00000; // default
+    always @(address) begin
+        // default, disabled
+        switch_ce_n    = 1'b1;
+        bar_led_ce_n   = 1'b1;
+        mem2_ce_n      = 1'b1;
+        board_led_ce_n = 1'b1;
+        mem1_ce_n      = 1'b1;
+
+        casex (address)
+            7'h74: switch_ce_n    = 1'b0;
+            7'h6C: bar_led_ce_n   = 1'b0;
+            7'h5?: mem2_ce_n      = 1'b0;
+            7'h2F: board_led_ce_n = 1'b0;
+            7'h0?: mem1_ce_n      = 1'b0;
+        endcase
+    end
 endmodule
