@@ -46,3 +46,9 @@ mem_ctl-test: mem_ctl-test.v ../mem_ctl.v
 
 clean:
 	-rm -f decoder-test decoder-test.vcd
+	-rm -f mem_ctl-test mem_ctl-test.vcd
+	-rm -f spi_ctl-test spi_ctl-test.vcd
+	-rm -f led_ctl-test led_ctl-test.vcd
+	-rm -f switch_ctl-test switch_ctl-test.vcd
+
+
