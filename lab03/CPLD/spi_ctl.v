@@ -79,8 +79,7 @@ module spi_ctl(
     end
 
 	always begin : main
-        wait(~reset_n);
-        wait(~nss);
+        @(negedge nss);
 
         // get the first 7 bits
         for (i = 0; i < 7; i = i + 1) begin
