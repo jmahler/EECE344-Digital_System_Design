@@ -1,0 +1,13 @@
+
+digraph spi_ctl {
+    "enabled" -> sample;
+
+    sample -> propagate;
+    propagate -> sample;
+
+    propagate -> "first byte";
+    "first byte" -> sample;
+    propagate -> "second byte";
+
+    "second byte" -> "disabled";
+}

@@ -50,6 +50,23 @@ module spi_ctl(
     output reg       read_n,
     output reg       write_n);
 
+    reg byte_state;
+    parameter FIRST_BYTE = 1'b0;
+    parameter SECOND_BYTE = 1'b1;
+
+    reg [2:0] next_state;
+    reg [2:0] cur_state;
+    parameter ENABLED               = 3'b000;
+    parameter SAMPLE                = 3'b001;
+    parameter PROPAGATE             = 3'b010;
+    parameter FIRST_BYTE_SAMPLE     = 3'b011;
+    parameter FIRST_BYTE_PROPAGATE  = 3'b100;
+    parameter SECOND_BYTE_SAMPLE    = 3'b101;
+    parameter SECOND_BYTE_PROPAGATE = 3'b110;
+    parameter DISABLED              = 3'b111;
+
+    // sample/propagate count
+    reg [4:0] sp_cnt;
 
 	// read register and next read register
 	reg [7:0] r_reg;
@@ -57,7 +74,6 @@ module spi_ctl(
 
 	reg mosi_sample;
 
-    reg [3:0] i;
     reg rw;
     reg write_data_bus;
 
@@ -70,75 +86,125 @@ module spi_ctl(
 	//assign miso = ~(nss) ? r_reg[7] : 1'bz;
     assign miso = r_reg[7];
 
-    initial forever @(negedge reset_n) begin
-        disable main;
-
-        r_reg   = 8'h00;
-        read_n  = 1'b1;
-        write_n = 1'b1;
+    always @(posedge sck, negedge sck, posedge nss, negedge nss) begin
+        if (~sck)
+            cur_state <= next_state;
+        else if (sck)
+            cur_state <= next_state;
+        else if (nss)
+            cur_state <= DISABLED;
+        else begin
+            cur_state <= ENABLED;
+        end
     end
 
-	always begin : main
-        @(negedge nss);
+    always @(cur_state) begin
 
-        // get the first 7 bits
-        for (i = 0; i < 7; i = i + 1) begin
-            // SAMPLE
-            @(posedge sck)
-                mosi_sample <= mosi;
-            // PROPAGATE
-            @(negedge sck)
-                r_reg <= r_next;
-        end
+        if (ENABLED == cur_state) begin
 
-        // get the 8th data bit, and store the data
-        @(posedge sck) begin
-            // drive the address bus
+            // START
+
+            sp_cnt     <= 0;
+            byte_state <= FIRST_BYTE;
+            next_state <= SAMPLE;
+
+        end else if (SAMPLE == cur_state) begin
+
+            // SAMPLE and PROPAGATE are done for the
+            // first 7 of the 8 bits.  Then the 8th
+            // bit is treated specially (FIRST_BYTE_SAMPLE, etc)
+            // so additional tasks can be performed.
+
+            mosi_sample <= mosi;
+            next_state  <= PROPAGATE;
+
+        end else if (PROPAGATE == cur_state) begin
+
+            r_reg  <= r_next;
+            sp_cnt <= sp_cnt + 1;
+
+            if (sp_cnt < 6)
+                next_state <= SAMPLE;
+            else if (SECOND_BYTE == byte_state)
+                next_state <= SECOND_BYTE_SAMPLE;
+            else
+                next_state <= FIRST_BYTE_SAMPLE;
+
+        end else if (FIRST_BYTE_SAMPLE == cur_state) begin
+
+            // At this point we have the rw bit and the address.
+            //
+            //   8  7 6 5 4 3 2 1
+            // <rw> <   addr    >
+            //
+
+
             address_bus <= {r_reg[5:0], mosi};
-            rw <= r_reg[6]; // store rw bit for later
+            rw <= r_reg[6];
 
-            // if the rw bit is zero, write, else read
-            if (r_reg[6] == 1'b0) begin
+            // The following uses r_reg[6] instead of rw
+            // due to the non-blocking assignment ('<=').
+
+            if (~(r_reg[6])) begin
                 // WRITE
-                // don't start a write here, we don't have
+
+                // don't initiate a write here, we don't have
                 // the data yet.
             end else begin
                 // READ
-                read_n      <= 1'b0;
-                @(negedge sck)
-                    r_reg <= data_bus;  // to send back on SPI
+
+                // enable read
+                read_n <= 1'b0;
+                // but don't latch the data yet, it might not be ready,
+                // wait until FIRST_BYTE_PROPAGATE
             end
-        end
 
-        // (second chunk of 8 bits)
+            next_state <= FIRST_BYTE_PROPAGATE;
 
-        // run the next 7 bits
-        for (i = 0; i < 7; i = i + 1) begin
-            // SAMPLE
-            @(posedge sck)
-                mosi_sample <= mosi;
-            // PROPAGATE
-            @(negedge sck)
-                r_reg <= r_next;
-        end
+        end else if (FIRST_BYTE_PROPAGATE == cur_state) begin
 
-        // process the 8th data bit
-        @(posedge sck) begin
             if (rw) begin
+                // READ
+
+                // latch the data to be sent back on SPI
+                r_reg <= data_bus;
+            end
+
+            // setup for second byte
+            sp_cnt <= 0;
+            byte_state <= SECOND_BYTE;
+            next_state <= SAMPLE;
+
+        end else if (SECOND_BYTE_SAMPLE == cur_state) begin
+
+            if (~rw) begin
+                // WRITE
+
+                // We got the second chunk of data,
+                // drive it on to the data bus to be written.
                 write_data_bus <= {r_reg[6:0], mosi};
             end
-        end
 
-        @(negedge sck) begin
+            next_state <= SECOND_BYTE_PROPAGATE;
+
+        end else if (SECOND_BYTE_PROPAGATE == cur_state) begin
             if (~rw) begin
-                write_n  <= 1'b0;
+                // enable a write
+                write_n <= 1'b0;
             end
-        end
 
-        @(posedge nss) begin
-            // reset to disabled state
+            next_state <= DISABLED;
+
+        end else begin
+
+            // END
+            // posedge nss
+
             read_n  <= 1'b1;
             write_n <= 1'b1;
+
+            next_state <= DISABLED;
+
         end
 	end
 endmodule
