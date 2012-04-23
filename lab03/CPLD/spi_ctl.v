@@ -54,16 +54,13 @@ module spi_ctl(
     parameter FIRST_BYTE = 1'b0;
     parameter SECOND_BYTE = 1'b1;
 
-    reg [3:0] next_state;
-    reg [3:0] cur_state;
-    parameter BEGIN                 = 8'd1,
-              SAMPLE                = 8'd2,
-              PROPAGATE             = 8'd3,
-              FIRST_BYTE_SAMPLE     = 8'd4,
-              FIRST_BYTE_PROPAGATE  = 8'd5,
-              SECOND_BYTE_SAMPLE    = 8'd6,
-              SECOND_BYTE_PROPAGATE = 8'd7,
-              DISABLED              = 8'd8;
+    reg [4:0] next_state;
+    reg [4:0] cur_state;
+    parameter FIRST_PROPAGATE       = 5'h01,
+              PROPAGATE             = 5'h02,
+              FIRST_BYTE_PROPAGATE  = 5'h04,
+              SECOND_BYTE_PROPAGATE = 5'd08,
+              DISABLED              = 5'd10;
 
     // sample/propagate count
     reg [4:0] sp_cnt;
