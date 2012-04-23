@@ -56,14 +56,12 @@ module spi_ctl(
 
     reg [2:0] next_state;
     reg [2:0] cur_state;
-    parameter ENABLED               = 3'b000;
     parameter SAMPLE                = 3'b001;
     parameter PROPAGATE             = 3'b010;
     parameter FIRST_BYTE_SAMPLE     = 3'b011;
     parameter FIRST_BYTE_PROPAGATE  = 3'b100;
     parameter SECOND_BYTE_SAMPLE    = 3'b101;
     parameter SECOND_BYTE_PROPAGATE = 3'b110;
-    parameter DISABLED              = 3'b111;
 
     // sample/propagate count
     reg [4:0] sp_cnt;
@@ -86,7 +84,8 @@ module spi_ctl(
 	//assign miso = ~(nss) ? r_reg[7] : 1'bz;
     assign miso = r_reg[7];
 
-    always @(posedge sck, negedge sck, posedge nss, negedge nss) begin
+    /*
+    always @(posedge sck, negedge sck, negedge nss) begin
         if (~sck)
             cur_state <= next_state;
         else if (sck)
@@ -97,34 +96,26 @@ module spi_ctl(
             cur_state <= ENABLED;
         end
     end
+    */
 
-    always @(cur_state) begin
 
-        if (ENABLED == cur_state) begin
+    always @(negedge sck) begin
+        mosi_sample <= mosi;
+    end
 
-            // START
+/*
+    always @(posedge sck) begin
 
-            sp_cnt     <= 0;
-            byte_state <= FIRST_BYTE;
-            next_state <= SAMPLE;
+        // (START is the default at the end)
 
-        end else if (SAMPLE == cur_state) begin
 
-            // SAMPLE and PROPAGATE are done for the
-            // first 7 of the 8 bits.  Then the 8th
-            // bit is treated specially (FIRST_BYTE_SAMPLE, etc)
-            // so additional tasks can be performed.
-
-            mosi_sample <= mosi;
-            next_state  <= PROPAGATE;
-
-        end else if (PROPAGATE == cur_state) begin
+        if (PROPAGATE == cur_state) begin
 
             r_reg  <= r_next;
             sp_cnt <= sp_cnt + 1;
 
             if (sp_cnt < 6)
-                next_state <= SAMPLE;
+                next_state <= PROPAGATE;
             else if (SECOND_BYTE == byte_state)
                 next_state <= SECOND_BYTE_SAMPLE;
             else
@@ -193,19 +184,22 @@ module spi_ctl(
                 write_n <= 1'b0;
             end
 
-            next_state <= DISABLED;
-
-        end else begin
-
             // END
-            // posedge nss
-
             read_n  <= 1'b1;
             write_n <= 1'b1;
-
             next_state <= DISABLED;
+        end else begin
+            // START
 
+            // START, FIRST_PROPAGATE
+            byte_state <= FIRST_BYTE;
+
+            r_reg  <= r_next;
+            sp_cnt     <= 1;
+            byte_state <= FIRST_BYTE;
+            next_state <= SAMPLE;
         end
 	end
+*/
 endmodule
 
