@@ -54,14 +54,16 @@ module spi_ctl(
     parameter FIRST_BYTE = 1'b0;
     parameter SECOND_BYTE = 1'b1;
 
-    reg [2:0] next_state;
-    reg [2:0] cur_state;
-    parameter SAMPLE                = 3'b001;
-    parameter PROPAGATE             = 3'b010;
-    parameter FIRST_BYTE_SAMPLE     = 3'b011;
-    parameter FIRST_BYTE_PROPAGATE  = 3'b100;
-    parameter SECOND_BYTE_SAMPLE    = 3'b101;
-    parameter SECOND_BYTE_PROPAGATE = 3'b110;
+    reg [3:0] next_state;
+    reg [3:0] cur_state;
+    parameter BEGIN                 = 8'd1,
+              SAMPLE                = 8'd2,
+              PROPAGATE             = 8'd3,
+              FIRST_BYTE_SAMPLE     = 8'd4,
+              FIRST_BYTE_PROPAGATE  = 8'd5,
+              SECOND_BYTE_SAMPLE    = 8'd6,
+              SECOND_BYTE_PROPAGATE = 8'd7,
+              DISABLED              = 8'd8;
 
     // sample/propagate count
     reg [4:0] sp_cnt;
@@ -80,34 +82,53 @@ module spi_ctl(
 	// r_next is the next PROPAGATE value
 	assign r_next = {r_reg[6:0], mosi_sample};
 
-	// set miso as long as we are enabled, otherwise set it high z
-	//assign miso = ~(nss) ? r_reg[7] : 1'bz;
     assign miso = r_reg[7];
 
-    /*
-    always @(posedge sck, negedge sck, negedge nss) begin
+    always @(negedge sck, negedge nss) begin
         if (~sck)
             cur_state <= next_state;
-        else if (sck)
-            cur_state <= next_state;
-        else if (nss)
-            cur_state <= DISABLED;
         else begin
-            cur_state <= ENABLED;
+            cur_state <= FIRST_PROPAGATE;
         end
     end
-    */
 
-
-    always @(negedge sck) begin
+    // SAMPLE
+    always @(posedge sck) begin
         mosi_sample <= mosi;
+
+        if (cur_state == FIRST_PROPAGATE) begin
+            read_n <= 1'b1; // disable
+        end if (cur_state == FIRST_BYTE_PROPAGATE) begin
+            // At this point we have the rw bit and the address.
+            //
+            //   8  7 6 5 4 3 2 1
+            // <rw> <   addr    >
+            //
+
+            address_bus <= {r_reg[5:0], mosi};
+            rw          <= r_reg[6];
+
+            if (1'b1 == r_reg[6] )
+                // READ
+                read_n  <= 1'b0; // enable
+            else
+                read_n  <= 1'b1; // disable
+
+        end else if (cur_state == SECOND_BYTE_PROPAGATE) begin
+            if (~rw) begin
+                // WRITE
+
+                // We got the second chunk of data,
+                // drive it on to the data bus to be written.
+                write_data_bus <= {r_reg[6:0], mosi};
+            end
+        end
     end
 
-/*
-    always @(posedge sck) begin
+    // PROPAGATE, etc
+    always @(negedge sck) begin
 
         // (START is the default at the end)
-
 
         if (PROPAGATE == cur_state) begin
 
@@ -117,67 +138,22 @@ module spi_ctl(
             if (sp_cnt < 6)
                 next_state <= PROPAGATE;
             else if (SECOND_BYTE == byte_state)
-                next_state <= SECOND_BYTE_SAMPLE;
+                next_state <= SECOND_BYTE_PROPAGATE;
             else
-                next_state <= FIRST_BYTE_SAMPLE;
-
-        end else if (FIRST_BYTE_SAMPLE == cur_state) begin
-
-            // At this point we have the rw bit and the address.
-            //
-            //   8  7 6 5 4 3 2 1
-            // <rw> <   addr    >
-            //
-
-
-            address_bus <= {r_reg[5:0], mosi};
-            rw <= r_reg[6];
-
-            // The following uses r_reg[6] instead of rw
-            // due to the non-blocking assignment ('<=').
-
-            if (~(r_reg[6])) begin
-                // WRITE
-
-                // don't initiate a write here, we don't have
-                // the data yet.
-            end else begin
-                // READ
-
-                // enable read
-                read_n <= 1'b0;
-                // but don't latch the data yet, it might not be ready,
-                // wait until FIRST_BYTE_PROPAGATE
-            end
-
-            next_state <= FIRST_BYTE_PROPAGATE;
-
+                next_state <= FIRST_BYTE_PROPAGATE;
         end else if (FIRST_BYTE_PROPAGATE == cur_state) begin
 
             if (rw) begin
                 // READ
 
-                // latch the data to be sent back on SPI
+                // get the data to be sent back on SPI
                 r_reg <= data_bus;
             end
 
             // setup for second byte
-            sp_cnt <= 0;
+            sp_cnt     <= 0;
             byte_state <= SECOND_BYTE;
-            next_state <= SAMPLE;
-
-        end else if (SECOND_BYTE_SAMPLE == cur_state) begin
-
-            if (~rw) begin
-                // WRITE
-
-                // We got the second chunk of data,
-                // drive it on to the data bus to be written.
-                write_data_bus <= {r_reg[6:0], mosi};
-            end
-
-            next_state <= SECOND_BYTE_PROPAGATE;
-
+            next_state <= PROPAGATE;
         end else if (SECOND_BYTE_PROPAGATE == cur_state) begin
             if (~rw) begin
                 // enable a write
@@ -185,21 +161,17 @@ module spi_ctl(
             end
 
             // END
-            read_n  <= 1'b1;
-            write_n <= 1'b1;
             next_state <= DISABLED;
         end else begin
-            // START
-
             // START, FIRST_PROPAGATE
-            byte_state <= FIRST_BYTE;
 
-            r_reg  <= r_next;
+            write_n <= 1'b1; // disable
+
+            r_reg      <= r_next;
             sp_cnt     <= 1;
             byte_state <= FIRST_BYTE;
-            next_state <= SAMPLE;
+            next_state <= PROPAGATE;
         end
 	end
-*/
 endmodule
 
