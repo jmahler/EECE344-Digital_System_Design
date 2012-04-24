@@ -40,7 +40,7 @@
 % {{{ Title Page
 
 \title{Lab 3 (EECE 344)}
-\date{March XXX, 2012}
+\date{March 24, 2012}
 \author{Jeremiah Mahler}
 
 \maketitle
@@ -53,53 +53,23 @@
 % {{{ Introduction
 \section{Introduction}
 
-The purpose of the "device" described in this document is mainly
-to orient a user with some of the basic facilities of a STM32L Discovery\citep{UM1079}
-(ARM) board and a Lattice CPLD\cite{EB66}
-\footnote{For the remainder of this document the term "CPLD" will
-be used to refer to the CPLD board and "ARM" will be used to
-refer to the ARM board}.
-It is somewhat of a Rube Goldberg machine for electrical engineers
-in that it does neat things but it does not do much that is useful.
+The device described here shows how to construct a bus
+using a Lattice MachXO\cite{EB66} board which connects
+to leds, switches and multiple ram memory chips.
+And how to control reads/writes to this bus
+over SPI by an ARM STM32L Discovery\cite{UM1079} board.
 
-The goal of this document is to describe the "device" in enough
-detail such that a person could re-create the system if given
-an identical parts.
-This document is not an instruction manual and therefore does not
-describe each step that would be required.
-It also does not describe tasks such as how to solder or wire wrap.
+\emph{IMPORTANT} - As of this writing this project has not
+been completed.
+The information contained in this document has not been verified
+against a working device.
 
-The general operation of this device is fairly simple.
-The ARM board is clocked and contains a cpu so it can do the processing
-tasks.
-The CPLD does not use a clock so it can only do logic or sequential tasks.
-These two devices communicate using SPI with the ARM as the master and
-the CPLD as the slave.
-
-The CPLD acts as an interface.
-A bank of switches are used to enter 8-bits of data.
-This data is sent to the ARM when requested.
-And any data it receives (during the full duplex SPI transaction)
-is displayed on to an external bank of LEDs.
-
-The ARM board does more useful computations.
-The 8-bit data it receives is treated as two 4-bit signed numbers
-in 2's compliment form.
-These two numbers can be added or subtracted from each other.
-A user input button provides the switch, when released they are
-added, when depressed they are subtracted.
-Whether this operation resulted in an overflow and whether or
-not the result is signed must also be accounted for.
-Then this result is sent to two different places.
-
-The first place the result is sent is back to the CPLD to be
-displayed on the external LEDs.
-The second place is on to LCD on board the ARM.
-
-The specific details of this general plan will be described 
-in the remainder of this document.
-
-% TODO - picture of board
+The primary obstruction to the completion of this project
+was due to the difficulty in constructing a synthesizeable
+solution for the SPI protocol.
+Verilog provides a rich language\cite{thomas2002verilog}
+but only a small subset of its language is synthesizeable
+using Diamond\cite{Diamond}.
 
 % }}}
 
@@ -107,7 +77,7 @@ in the remainder of this document.
 \section{Pin Assignments}
 \label{sec:pa}
 
-One of the critical design specifications of this device are
+One of the critical design specifications for this device are
 the pin assignments.
 Table \ref{tbl:pins} lists the connections that were used.
 Keep in mind that these assignments are specific to this
@@ -186,7 +156,7 @@ cannot be changed due conflicts with other resources on the board.
 	16 & Vss & ground & & & J3 & 36 \\
 	\hline
 \end{tabular}
-\caption{Pin assignments between RAM chip and CPLD.}
+\caption{Pin assignments between RAM chip \#1 and CPLD.}
 \end{table}
 
 % TODO - break each in to own table
@@ -272,9 +242,6 @@ cannot be changed due conflicts with other resources on the board.
 \end{table}
 
 % describe the pin meanings
-Deciphering these pin assignments can be somewhat confusing.
-On the ARM board there are headers on either side with each
-pin clearly labeled.
 On the CPLD the pins correspond to headers (J9, J7, etc)
 and pins within those headers\citep[Pg. 11-14]{EB66}.
 The header and pin numbers are printed at the end of each header.
@@ -284,27 +251,9 @@ This is used for assigning pins when configuring the CPLD
 using Diamond\cite{Diamond}.
 
 % configuring using Diamond
-Configuring the CPLD pins using Diamond\cite{Diamond} can
-be confusing with the bewildering array of options and settings.
-Luckily the requirements for this device are fairly simple.
-All pins should be configured for low voltage 3.3 volt CMOS.
-Output pins can be configured for 8 mA.
-And no pull up or pull down options are required.
-
-% ARM to Lattice Diamond
-For the pins used with for the SPI that connect between the
-ARM and the CPLD there are no special requirements.
-They are both designed to work with 3.3 volt CMOS voltage levels.
-
-% ground
-For the ground connections each board provides several connection
-points.
-In general any connection to ground should work and
-it is not required to connect to a specific ground pin.
-For example the ARM board has four pins labeled GND.
-Any of these should work equally well.
-It is also a good idea to connect the grounds together so
-that they all reference the same common ground.
+The pins were configured with standard options:
+low voltage 3.3 volt CMOS with no pull up or pull down.
+Output pins to drive the leds were configured for 8 mA drive current.
 
 % input switches
 The input switches to the CPLD can be interfaced by connecting
@@ -333,12 +282,12 @@ Table \ref{tbl:pins} lists the exact pins that were used.
 
 % }}}
 
-% {{{ SPI
-\section{Serial Peripheral Interface (SPI)}
+% {{{ SPI protocol
+\section{SPI protocol}
 
-In order for the ARM and CPLD to communicate using SPI\citetext{ \citealp[Pg. 278]{cady2009microcontrollers}; \citealp[Pg. 665]{STRM0038}}
-they must both have the same options set.
-Table \ref{tbl:spi} lists the options that were used.
+The SPI protocol uses typical SPI transitions
+\citetext{ \citealp[Pg. 278]{cady2009microcontrollers}; \citealp[Pg. 665]{STRM0038}}
+and the configuration options used are given in Table \ref{tbl:spi}.
 
 \begin{table}
 \center
@@ -349,175 +298,32 @@ Table \ref{tbl:spi} lists the options that were used.
 	MSB & first \\
 	CPOL & 0 \\
 	CPHA & 0 \\
-	SS\_L & slave select on low \\
+	NSS & slave select on low \\
 	\hline
 \end{tabular}
 \caption{SPI configuration options}
 \label{tbl:spi}
 \end{table}
 
-The MSB option specifies that the most significant bit is sent
-out first.
-CPOL specifies the polarity as zero and CPHA specifies the phase
-as zero (first clock edge).
-SS\_L specifies that slave is selected when this line is low.
+To communicate with the bus requires two bytes of data with
+8-bits each.
+The first byte sent from the master to the slave
+contains the read/write bit and the address.
+The first return byte is ignored.
+If the operation is a read the second returned byte
+contains the data read from the bus.
+The data sent is treated as a "form feed" and ignored.
+If the operation is a write the second byte sent
+contains the data to be written.
+The second byte returned is ignored.
 
-The pins used for the SPI on the ARM board were chosen because
-they did not conflict with any other on board devices.
-This resulted in pins PA5, PA12 and PA11 with SPI1 for SCK, MOSI,
-and MISO respectively\cite[Pg. 24]{UM1079}
-
-Since this device does not require high speed it was
-chosen to limit the speeds in an effort to improve reliability.
-During testing the value of the SPI clock was found to be approximately
-60 kHz.
-Since the CPLD is driven by this clock and does not require a specific
-frequency it may work with other values.
-Certainly values within the same order of magnitude are likely to work.
-
-The ARM, as the SPI master, controls when an SPI transaction occurs.
-The simplest way to control this, as was done in this design, is to use polling.
-This method is inefficient since data is repeatedly being sent
-whether it needs to or not
-but it has the side effect of helping to mitigate errors.
-Since each new transaction resets the registers to the beginning,
-any erroneous data will be quickly overwritten with new data.
-This will work as long as the number of transactions without errors
-far exceed the number of transactions with errors.
-
-% }}}
-
-% {{{ CPLD input/output formats
-\section{CPLD input/output formats}
-\label{sec:cpld}
-
-As was discussed previously, the CPLD has switch inputs
-and LED outputs.
-The orientation and format of this bits is the subject of
-this section.
-
-The bank of switches are typically numbered.
-In this case they were numbered one through eight.
-The common orientation is from right to left starting
-with the LSB.
-This orientation was applied here but the result is
-largest switch number corresponds to the LSB (reversed).
-
-The position of the output LEDs mimic thos of the input
-switches with the LSB on the right most side.
-% }}}
-
-% {{{ Calculations
-\section{Calculations}
-\label{sec:calc}
-
-The bit positions described here are referenced using the
-most significant bit (MSB) and least significant bit (LSB).
-The orientation from left to right does not necessarily
-correspond to the orientation of the switches and LEDs.
-Refer to Section \ref{sec:pa} for a description of the orientation.
-
-The are several steps that must be performed in order for
-the ARM to perform the necessary calculations.
-Each will be discussed below.
-
-First the data must be received.
-The data should arrive over the SPI with the MSB first.
-And this needs to be split in to two 4-bit segments
-as is shown below.
-
-\begin{verbatim}
-MSB         LSB
-8 7 6 5 4 3 2 1     8-bit data
-   /        \
-4 3 2 1   4 3 2 1   4-bit segments
-   B         A      numbers A and B
-\end{verbatim}
-
-But the ARM does not have a 4-bit data type.
-In order to solve this problem bit masks can be used to
-translate the data in to the required size.
-For example if the size necessary is 32-bits.
-This data is first set to zero, then logically OR'ed with
-the incoming data to "transfer" the bits.
-
-Next it must be chosen which operation to perform, add or subtract.
-To decide which the on board user push button\cite[Pg. 17]{UM1079}
-is used.  When it is released addition is performed, when it
-is pressed, subtraction is performed.
-When subtraction is performed the second number (LSB section)
-is subtracted from the first (MSB section).
-
-% 2's compliment
-
-Another design requirement is that the add and subtract operations
-set the overflow and carry bits.
-To accomplish this using ARM specific assembly instructions
-must be used \cite[Pg. 54]{furber2000arm} and a status
-register must be examined\cite[Pg. 40]{furber2000arm}.
-
-Since the 4-bits had to be placed in to a larger data type
-they should be shifted to towards the MSB.
-This will ensure that the operation will set the overflow and
-sign bit appropriately.
-
-Once the addition or subtraction has been performed and the
-results of status register are known this data must be
-manipulated in to two different formats, one for the LCD,
-and the other for the LEDs.
-
-The format for the LEDs is shown below.
-\begin{verbatim}
-     LEDS
-MSB         LSB
-8 7 6 5 4 3 2 1
----------------
-    N V 4 3 2 1 
-\end{verbatim}
-Where \verb+N+ is 1 if it is negative and 0 if positive.
-\verb+V+ is 1 if overflow occurred and 0 otherwise.
-And positions 4 through 1 represent the unsigned 4-bit result
-with the MSB at position 4.
-
-Some examples of the format of the LCD are shown below.
-\begin{verbatim}
-N1V0-3
-N0V1+6
-N0V0 0
-\end{verbatim}
-Notice that \verb+N+ and \verb+V+ precede the bit which
-indicates the negative flag or overflow respectively.
-The remaining space is used to display the result in decimal including the sign.
-A negative zero is disallowed.
-
-Table \ref{tbl:calc} list several test cases showing the expected
-outputs on the LEDs and the LCD when given certain switch inputs
-and whether or not the user button is pressed.
-This list is far from exhaustive.
-Given that the input switches have 8-bits and for each of
-these bits there are two possibilities (button pressed/released)
-this results in 512 possible combinations ($2 \cdot 2^8$).
-
-\begin{table}
-\begin{tabular}{|c c|c c|c c|}
-\hline
-\multicolumn{2}{|c}{\textbf{switches}} & \multicolumn{2}{|c|}{\textbf{LEDs}}       & \multicolumn{2}{c|}{\textbf{LCD}} \\
-A   & B                        & button=pressed & button=released & button=pressed & button=released \\
-\hline
-0000 & 0000 & 00 0000 & 00 0000 & N0V0 0 & N0V0 0 \\
-0000 & 0001 & 10 1111 & 00 0001 & N1V0-1 & N0V0+1 \\
-1010 & 0011 & 01 0111 & 10 1101 & N0V1+7 & N1V0-3 \\
-1100 & 0100 & 00 0000 & 10 1000 & N1V0-8 & N0V0 0 \\
-1100 & 0110 & 01 0110 & 00 0010 & N0V1+6 & N0V0+2 \\
-1111 & 1000 & 00 0111 & 01 0111 & N0V0+7 & N0V1+7 \\
-\hline
-\end{tabular}
-\caption{Calculation test values showing switch inputs, LED, and LCD outputs.
-The orientation used here has the MSB on the left and the LSB on the right.
-For the subtraction operation the results equals A - B.
-When the button is released addition is performed, when it is pressed subtraction is performed.}
-\label{tbl:calc}
-\end{table}
+Normally the SPI protocol is enabled using the NSS pin at the
+start of a transaction and disabled at the end of 8-bits.
+In this case it was necessary to transfer two bytes.
+And it was also necessary to detect the start/end of the transaction.
+To accomplish this the SPI protocol was modified so that NSS
+remains enabled for two bytes (16 bits).
+This solutions required no additional pins.
 
 % }}}
 
