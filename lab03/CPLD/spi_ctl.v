@@ -102,6 +102,7 @@ module spi_ctl(
     always @(posedge sck) begin
         mosi_sample <= mosi;
 
+        /*
         if (cur_state == FIRST_PROPAGATE) begin
             //read_n <= 1'b1; // disable
         end if (cur_state == FIRST_BYTE_PROPAGATE) begin
@@ -114,13 +115,11 @@ module spi_ctl(
             //address_bus <= r_next;
             //rw          <= r_reg[6];
 
-            /*
             if (1'b1 == r_reg[6])
                 // READ
                 read_n  <= 1'b0; // enable
             else
                 read_n  <= 1'b1; // disable
-            */
 
         end else if (cur_state == SECOND_BYTE_PROPAGATE) begin
             //if (~rw) begin
@@ -131,6 +130,7 @@ module spi_ctl(
                 //write_data_bus <= {r_reg[6:0], mosi};
             //end
         end
+        */
     end
 
     // PROPAGATE, etc
@@ -157,9 +157,11 @@ module spi_ctl(
             if (r_reg[6]) begin
                 // READ
 
-                // get the data to be sent back on SPI
-                r_reg <= data_bus;  // XXX TODO too soon, data_bus not ready
-                //r_reg <= 8'h45;
+                // XXX TODO
+                // This doesn't work because the data_bus isn't ready
+                // until AFTER read_n goes low.
+                r_reg <= data_bus;
+
                 read_n <= 1'b0; // enable
             end
 

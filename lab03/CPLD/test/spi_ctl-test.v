@@ -43,13 +43,12 @@ module test;
 
 		#1 nss = 0; // enabled
 
-
-        // *** READ CYCLE #1 ***
+        // *** EXAMPLE #1: READ CYCLE ***
 
 		w_mosi = 8'hD5;  // READ
 		SPI_once();
 
-        // at this point look for the following states (using Gtkwave)
+        // at this point look for the following states (in Gtkwave)
         //
         // s1.address_bus = 0x55
         // s1.rw = 1      // read
