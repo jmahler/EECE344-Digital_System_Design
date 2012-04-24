@@ -41,7 +41,7 @@ module test;
         // because it is assumed that the clock speed (clk)
         // is much larger.
 
-        #1;
+        #2;
 
         // During a write cycle the data placed on the bus
         // should be seen driven to the mem_data output.
@@ -72,9 +72,10 @@ module test;
         #10;
         // disable
             ce_n = 1'b1;
-            write_n = 1'b1;
+            read_n = 1'b1;
 
 		#10 $finish;
+
 	end
 
 endmodule

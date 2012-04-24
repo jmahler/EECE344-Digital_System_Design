@@ -22,10 +22,10 @@
  */
 
 module switch_ctl(
-	input            read_n,
-                     ce_n,
-    output reg [7:0] data,
-    input      [7:0] switches);
+	input             read_n,
+                      ce_n,
+    output wire [7:0] data,
+    input       [7:0] switches);
 
     reg [7:0] write_data;
     assign data = (~(ce_n | read_n)) ? write_data : 8'bz;

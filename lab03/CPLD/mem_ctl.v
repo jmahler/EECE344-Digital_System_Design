@@ -61,44 +61,53 @@ module mem_ctl(
 	// It is assumed that the data and address have already been
 	// established.  The following just goes through the timing cycle.
 
-	// ENABLED, perform a read or write
-	always @(negedge ce_n, negedge write_n, negedge read_n) begin
-		if (~write_n) begin
-			// WRITE CYCLE 1
-            @(posedge clk) begin
-				ceh_n <= 1'b0;
-				ce2   <= 1'b1;
+    parameter [2:0]
+        START  = 0,
+        READ2  = 1,
+        WRITE2 = 2,
+        DONE   = 3;
+
+    reg [3:0] state;
+
+    always @(posedge clk) begin
+        if (~read_n) begin
+            case (state)
+                START: begin
+                    ceh_n  <= 1'b0;
+                    ce2    <= 1'b1;
+                    state  <= READ2;
+                end
+                READ2: begin
+                    oe_n   <= 1'b0;
+                    state  <= DONE;
+                end
+                default:
+                    state  <= DONE;
+            endcase
+        end else if (~write_n) begin
+            case (state)
+                START: begin
+                    ceh_n  <= 1'b0;
+                    ce2    <= 1'b1;
+                    state  <= WRITE2;
+                end
+                WRITE2: begin
+                    oe_n   <= 1'b0;
+                    state  <= DONE;
+                end
+                default:
+                    state  <= DONE;
+            endcase
+        end else begin
+            state <= START;
+            if (ce_n) begin
+                // diable
+                oe_n  <= 1'b1;
+                we_n  <= 1'b1;
+                ceh_n <= 1'b1;
+                ce2   <= 1'b0;
             end
-
-			@(posedge clk)
-				we_n <= 1'b0;
-
-            // wait 4 cycles
-            for (i = 0; i < 4; i = i + 1) begin
-				@(posedge clk);
-            end
-		end else if (~read_n) begin
-			// READ CYCLE 2
-            @(posedge clk) begin
-				ceh_n <= 1'b0;
-				ce2 <= 1'b1;
-            end
-
-			@(posedge clk)
-				oe_n <= 1'b0;
-
-            // wait 2 cycles
-            for (i = 0; i < 2; i = i + 1)
-				@(posedge clk);
-		end
-	end
-
-	always @(posedge ce_n) begin
-		// DISABLE
-		ceh_n <= 1'b1;
-		ce2   <= 1'b0;
-        we_n  <= 1'b1;
-		oe_n  <= 1'b1;
-	end
+        end
+    end
 endmodule
 
