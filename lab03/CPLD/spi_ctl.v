@@ -4,16 +4,15 @@
  *
  *   SPI_slave.v - SPI slave
  *
+ * WARNING
+ * -------
+ *
+ * This code is currently broken and not usable.
+ *
  * DESCRIPTION
  * -----------
  *
- * This module acts as an SPI slave.
- * When ss_l goes low it is enabled.
- * And for each rising edge of sclk it samples a value (mosi)
- * and on each falling edge it propagates the received value
- * and updates the miso value.
- * The data it outputs is defined by 'spi_tx'.
- * And the data it receives is stored in 'spi_rx'.
+ * This module controls the SPI to bus communication.
  *
  * The following SPI settings used by this module:
  *
@@ -23,13 +22,13 @@
  *   SS_L (enable on low)
  *
  * The following describes the required signals in general.
- * Notice that the SS_L transitions after the SCLK has stopped.
+ * Notice that the NSS transitions after the SCK has stopped.
  * This is also configuration specific with CPOL=0 and CPHA=0.
  *
  *        --+                            +--
- *  SS_L    |___________ ... ____________|
+ *  NSS     |___________ ... ____________|
  *            +--+  +--+     +--+  +--+
- *  SCLK  ____|  |__|  | ... |  |__|  |_____
+ *  SCK   ____|  |__|  | ... |  |__|  |_____
  *
  *
  * AUTHOR
