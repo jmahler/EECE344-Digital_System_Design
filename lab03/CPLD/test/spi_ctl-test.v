@@ -45,17 +45,35 @@ module test;
 
         // *** EXAMPLE #1: READ CYCLE ***
 
-		w_mosi = 8'hD5;  // READ
+        // What to loof for?
+        //
+        // Refer to the figure in the documentation (doc/)
+        // title "Timing diagram of SPI".
+        // This should approximately match that diagram.
+        //
+        //
+        // At the START of this transaction you should see the following:
+        //
+        // 'count' set to 1 at the first SAMPLE edge of sck
+        //
+        // At the END of this transaction you should see the following:
+        //
+        // The address should be on the 'address_bus'.
+        // In this case 0x85 (read 0x05) would result in 0x05
+        // on the 'address_bus'.
+        //
+        // The value to read (in this case 0xAA from above) should
+        // be on the 'data_bus'.
+        //
+        // 'rw' should be 1 for a read
+        //
+        // 'read_n' should go low to start a read
+        //
+		//w_mosi = 8'hD5;  // READ address 0xD5
+		//w_mosi = 8'h85;  // READ address 0x85
+		w_mosi = 8'h84;  // READ address 0x85
 		SPI_once();
 
-        // at this point look for the following states (in Gtkwave)
-        //
-        // s1.address_bus = 0x55
-        // s1.rw = 1      // read
-        // s1.read_n = 0  // enable read
-        // s1.write_n = 1 // disable write
-        // data_bus = 0xAA
-        // r_reg = 0xAA  // loaded with data to write back
 
 		w_mosi = 8'h33;  // form feed, value is ignored
 		SPI_once();

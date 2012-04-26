@@ -49,144 +49,63 @@ module spi_ctl(
     output reg       read_n,
     output reg       write_n);
 
-    reg byte_state;
-    parameter FIRST_BYTE = 1'b0;
-    parameter SECOND_BYTE = 1'b1;
+    // sample count
+    reg [8:0] count;
 
-    reg [4:0] next_state;
-    reg [4:0] cur_state;
-    parameter FIRST_PROPAGATE       = 5'd1,
-              PROPAGATE             = 5'd2,
-              FIRST_BYTE_PROPAGATE  = 5'd3,
-              SECOND_BYTE_PROPAGATE = 5'd4,
-              DISABLED              = 5'd5;
+	reg mosi_sample;
 
-    // sample/propagate count
-    reg [4:0] sp_cnt;
+    reg rw;
+
+    // when a read, drive the data bus
+    reg write_data_bus;
+    assign data_bus = (~(write_n | ~read_n)) ? write_data_bus : 8'bz;
 
 	// read register and next read register
 	reg [7:0] r_reg;
 	wire [7:0] r_next;
 
-	reg mosi_sample;
-
-    reg rw;
-    reg write_data_bus;
-
-    // when a read, drive the data bus
-    assign data_bus = (~(write_n | ~read_n)) ? write_data_bus : 8'bz;
-
 	// r_next is the next PROPAGATE value
 	assign r_next = {r_reg[6:0], mosi_sample};
-
     assign miso = r_reg[7];
 
+    // This tedious code is much easier to understand
+    // along with timing digrams given in the documentation (doc/).
+    // Look for the section titled "Timing diagram of SPI"
+
     // This acts as a "one shot" used to indicate the start of a transaction
-    reg nss_start;
+    reg start;
     always @(negedge nss, posedge sck) begin
         if (sck)
-            nss_start <= 1'b0;
+            start <= 1'b0;
         else
-            nss_start <= 1'b1;
-    end
-
-    always @(posedge sck, posedge nss_start) begin
-        if (nss_start)
-            cur_state <= FIRST_PROPAGATE;
-        else begin
-            cur_state <= next_state;
-        end
+            start <= 1'b1;
     end
 
     // SAMPLE
-    always @(posedge sck) begin
-        mosi_sample <= mosi;
+    always @(posedge sck, posedge start) begin
+        if ((start == 1'b1) && !(sck == 1'b0)) begin
+            count   <= 8'd1;
+            read_n  <= 1'b1;
+        end else begin
+            mosi_sample <= mosi;
+            count       <= count + 8'd1;
 
-        /*
-        if (cur_state == FIRST_PROPAGATE) begin
-            //read_n <= 1'b1; // disable
-        end if (cur_state == FIRST_BYTE_PROPAGATE) begin
-            // At this point we have the rw bit and the address.
-            //
-            //   8  7 6 5 4 3 2 1
-            // <rw> <   addr    >
-            //
-
-            //address_bus <= r_next;
-            //rw          <= r_reg[6];
-
-            if (1'b1 == r_reg[6])
-                // READ
-                read_n  <= 1'b0; // enable
-            else
-                read_n  <= 1'b1; // disable
-
-        end else if (cur_state == SECOND_BYTE_PROPAGATE) begin
-            //if (~rw) begin
-                // WRITE
-
-                // We got the second chunk of data,
-                // drive it on to the data bus to be written.
-                //write_data_bus <= {r_reg[6:0], mosi};
-            //end
+            if (8'd7 == count) begin
+                // values pre-propagate
+                address_bus <= {r_reg[5:0], mosi};
+                rw          <= r_reg[6];
+                read_n      <= 0;
+            end
         end
-        */
     end
 
-    // PROPAGATE, etc
+    // PROPAGATE
     always @(negedge sck) begin
+        r_reg <= r_next;
 
-        // (START is the default at the end)
+ //       if (rw && 7 == count)
+//            write_data_bus <= r_next;
+    end
 
-        if (PROPAGATE == cur_state) begin
-
-            r_reg  <= r_next;
-            sp_cnt <= sp_cnt + 1;
-
-            if (sp_cnt < 6)
-                next_state <= PROPAGATE;
-            else if (SECOND_BYTE == byte_state)
-                next_state <= SECOND_BYTE_PROPAGATE;
-            else
-                next_state <= FIRST_BYTE_PROPAGATE;
-        end else if (FIRST_BYTE_PROPAGATE == cur_state) begin
-
-            address_bus <= r_next;
-            rw          <= r_reg[6];
-
-            if (r_reg[6]) begin
-                // READ
-
-                // XXX TODO
-                // This doesn't work because the data_bus isn't ready
-                // until AFTER read_n goes low.
-                r_reg <= data_bus;
-
-                read_n <= 1'b0; // enable
-            end
-
-            // setup for second byte
-            sp_cnt     <= 0;
-            byte_state <= SECOND_BYTE;
-            next_state <= PROPAGATE;
-        end else if (SECOND_BYTE_PROPAGATE == cur_state) begin
-            if (~rw) begin
-                // enable a write
-                write_n <= 1'b0;
-            end
-
-            // END
-            next_state <= DISABLED;
-        end else begin
-            // START, FIRST_PROPAGATE
-
-            write_n <= 1'b1; // disable
-
-            r_reg      <= r_next;
-            sp_cnt     <= 1;
-            byte_state <= FIRST_BYTE;
-            next_state <= PROPAGATE;
-        end
-	end
 endmodule
 

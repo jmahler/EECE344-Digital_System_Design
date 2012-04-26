@@ -325,6 +325,27 @@ To accomplish this the SPI protocol was modified so that NSS
 remains enabled for two bytes (16 bits).
 This solutions required no additional pins.
 
+\begin{figure}
+\center
+\includegraphics[scale=0.7]{figure/spi_ctl-timing/read-byte1} \\
+(a) \\
+\includegraphics[scale=0.7]{figure/spi_ctl-timing/read-byte2} \\
+(b)
+\caption{Timing diagram of a SPI Read cycle.
+Part (a) is the first 8-bits and part (b) is the second
+continuing from (a)
+The transations at the start of b aren't really true,
+the data is constant from a to b.
+In part (a) the data is not valid until a cycle after the address
+is set.
+This is due to the time it takes the decoder to enable the chip and
+get valid data on the data bus.
+The data must be valid before the start of the second byte
+when it is loaded in to the shift register to be sent back on the SPI.
+}
+\end{figure}
+
+
 % }}}
 
 % {{{ References
