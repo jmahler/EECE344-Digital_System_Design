@@ -305,18 +305,6 @@ and the configuration options used are given in Table \ref{tbl:spi}.
 \label{tbl:spi}
 \end{table}
 
-To communicate with the bus requires two bytes of data with
-8-bits each.
-The first byte sent from the master to the slave
-contains the read/write bit and the address.
-The first return byte is ignored.
-If the operation is a read the second returned byte
-contains the data read from the bus.
-The data sent is treated as a "form feed" and ignored.
-If the operation is a write the second byte sent
-contains the data to be written.
-The second byte returned is ignored.
-
 Normally the SPI protocol is enabled using the NSS pin at the
 start of a transaction and disabled at the end of 8-bits.
 In this case it was necessary to transfer two bytes.
@@ -325,16 +313,30 @@ To accomplish this the SPI protocol was modified so that NSS
 remains enabled for two bytes (16 bits).
 This solutions required no additional pins.
 
+To communicate with the bus requires two bytes of data with
+8-bits each.
+The first byte sent from the master to the slave
+contains the read/write bit and the address.
+The first return byte is ignored.
+
+For the second byte it depends on whether it is a read or
+a write operation.
+For a read any data can be sent and the value read will be
+returned.  This in analogous to a printer "form feed".
+For a write the data to be written must be sent as the second
+byte.
+The value returned should be ignored.
+
 \begin{figure}
 \center
 \includegraphics[scale=0.7]{figure/spi_ctl-timing/read-byte1} \\
 (a) \\
 \includegraphics[scale=0.7]{figure/spi_ctl-timing/read-byte2} \\
 (b)
-\caption{Timing diagram of a SPI Read cycle.
+\caption{Timing diagram of a SPI read cycle.
 Part (a) is the first 8-bits and part (b) is the second
-continuing from (a)
-The transations at the start of b aren't really true,
+continuing from (a).
+The transactions at the start of b aren't really true,
 the data is constant from a to b.
 In part (a) the data is not valid until a cycle after the address
 is set.
@@ -343,8 +345,36 @@ get valid data on the data bus.
 The data must be valid before the start of the second byte
 when it is loaded in to the shift register to be sent back on the SPI.
 }
+\label{fig:spi_read}
 \end{figure}
 
+\begin{figure}
+\center
+\includegraphics[scale=0.7]{figure/spi_ctl-timing/write-byte1} \\
+(a) \\
+\includegraphics[scale=0.7]{figure/spi_ctl-timing/write-byte2} \\
+(b)
+\caption{Timing diagram of a SPI write cycle.
+Part (a) is the first 8-bits and part (b) is the second
+continuing from (a).
+A write is not initiated until the end of the
+second byte because it has to read this byte entirely before it can be written.}
+\label{fig:spi_write}
+\end{figure}
+
+When values are read or written to the bus they must be held for
+some amount of time.
+In this implementation this is accomplished by controlling the
+pulse width from the end of the 16'th \verb+sck+ edge and the positive
+edge of \verb+nss+ (going disabled).
+Since the clock speed of the SPI is on the order of kHz and the
+clock inside the CPLD is on the order of MHz there should be plenty
+of time for any memory timings or other operations to be done.
+
+% }}}
+
+% {{{ Bus Interface
+\section{Bus Interface}
 
 % }}}
 

@@ -15,6 +15,8 @@ module test;
 
     spi_ctl s1(nss, mosi, sck, miso, reset_n, address_bus, data_bus, read_n, write_n);
 
+    // For a read, drive something on to the device so something
+    // is actually read (since there are no devices on the bus).
     reg [7:0] write_data_bus;
     assign data_bus = (~read_n) ? write_data_bus : 8'bz;
 
@@ -41,9 +43,39 @@ module test;
         #1 reset_n = 0;
         #1 reset_n = 1;
 
+        // *** EXAMPLE #2: WRITE CYCLE ***
+
 		#1 nss = 0; // enabled
 
+        //
+        // At the START of the FIRST byte you should see the following:
+        //
+        // both 'read_n' and 'write_n' high.
+        //
+        // At the END of the FIRST byte you should see the following:
+        //
+        // both 'read_n' and 'write_n' high.
+        //
+        // At the END of the SECOND byte you should see the following:
+        //
+        // 'read_n' high, 'write_n' LOW
+        //
+        // The value to be written (0xF3 in this example) driven
+        // to the data bus.
+        //
+		w_mosi = 8'h01; // WRITE address 0x01
+		SPI_once();
+
+		w_mosi = 8'hF3;  // value to be written
+		SPI_once();
+
+		#1 nss = 1; // disabled
+
+        // *** END EXAMPLE #2 ***
+
         // *** EXAMPLE #1: READ CYCLE ***
+
+		#1 nss = 0; // enabled
 
         // What to loof for?
         //
@@ -78,11 +110,9 @@ module test;
 		w_mosi = 8'h33;  // form feed, value is ignored
 		SPI_once();
 
-        // s1.data_bus = 
-
 		#1 nss = 1; // disabled
 
-        // *** END READ CYCLE #1 ***
+        // *** END EXAMPLE #1 ***
 
 
 		#3 $finish;

@@ -26,5 +26,7 @@ The [IVerilog][iverilog] simulator was used but others may also work.
 AUTHOR
 ------
 
-Jeremiah Mahler <jmmahler@gmail.com>
+Jeremiah Mahler <jmmahler@gmail.com><br>
+<https://plus.google.com/101159326398579740638/about>
+
 

@@ -57,7 +57,7 @@ module spi_ctl(
     reg rw;
 
     // when a read, drive the data bus
-    reg write_data_bus;
+    reg [7:0] write_data_bus;
     assign data_bus = (~(write_n | ~read_n)) ? write_data_bus : 8'bz;
 
 	// read register and next read register
@@ -82,29 +82,54 @@ module spi_ctl(
     end
 
     // SAMPLE
-    always @(posedge sck, posedge start) begin
-        if ((start == 1'b1) && !(sck == 1'b0)) begin
-            count   <= 8'd1;
-            read_n  <= 1'b1;
+    always @(posedge start, posedge sck, posedge nss) begin
+        if (nss) begin
+            read_n   <= 1'b1; // disable
+        end else if ((start == 1'b1) && !(sck == 1'b0)) begin
+            count    <= 1;
+            read_n   <= 1'b1; // disable
         end else begin
             mosi_sample <= mosi;
-            count       <= count + 8'd1;
+            count       <= count + 1;
 
-            if (8'd7 == count) begin
-                // values pre-propagate
+            if (7 == count) begin
+                // end of first byte
+
                 address_bus <= {r_reg[5:0], mosi};
                 rw          <= r_reg[6];
-                read_n      <= 0;
+
+                if (r_reg[6] == 1'b1)
+                    read_n <= 0;
+            end
+
+            if (15 == count && rw == 1'b0) begin
+                write_data_bus <= r_next;
             end
         end
     end
 
     // PROPAGATE
-    always @(negedge sck) begin
+    always @(negedge sck, posedge nss) begin
         r_reg <= r_next;
 
- //       if (rw && 7 == count)
-//            write_data_bus <= r_next;
+        if (nss)
+            write_n <= 1; // disable
+        else begin
+            if (1 == count) begin
+                write_n <= 1; // disable
+            end
+
+            if (16 == count) begin
+                // end of second byte
+
+                if (rw == 1'b0) begin
+                    // drive the data to be written on to the bus
+                    write_n        <= 0;
+                    //write_data_bus <= r_next;
+                end
+            end
+        end
+
     end
 
 endmodule
