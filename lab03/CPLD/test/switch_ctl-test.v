@@ -22,8 +22,7 @@ module test;
         #1;
 
         // For all these various combinations of enable/disable
-        // data should only be driven when ce_n and read_n are
-        // both low.
+        // data should only be driven when both ce_n and read_n are low.
 
         // enable
         #1 ce_n = 1'b0;

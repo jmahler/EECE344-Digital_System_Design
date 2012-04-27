@@ -27,10 +27,5 @@ module switch_ctl(
     output wire [7:0] data,
     input       [7:0] switches);
 
-    reg [7:0] write_data;
-    assign data = (~(ce_n | read_n)) ? write_data : 8'bz;
-
-    always @(negedge read_n) begin
-        write_data <= switches;
-    end
+    assign data = (~(ce_n | read_n)) ? switches : 8'bz;
 endmodule
