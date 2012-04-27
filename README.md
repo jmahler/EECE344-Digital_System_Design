@@ -21,7 +21,7 @@ Jeremiah Mahler <jmmahler@gmail.com><br>
 COPYRIGHT
 =========
 
-Copyright &copy; 2011, Jeremiah Mahler.  All Rights Reserved.<br>
+Copyright &copy; 2012, Jeremiah Mahler.  All Rights Reserved.<br>
 This project is free software and released under
 the [GNU General Public License][gpl].
 
