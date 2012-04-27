@@ -59,18 +59,6 @@ to leds, switches and multiple ram memory chips.
 And how to control reads/writes to this bus
 over SPI by an ARM STM32L Discovery\cite{UM1079} board.
 
-\emph{IMPORTANT} - As of this writing this project has not
-been completed.
-The information contained in this document has not been verified
-against a working device.
-
-The primary obstruction to the completion of this project
-was due to the difficulty in constructing a synthesizeable
-solution for the SPI protocol.
-Verilog provides a rich language\cite{thomas2002verilog}
-but only a small subset of its language is synthesizeable
-using Diamond\cite{Diamond}.
-
 % }}}
 
 % {{{ Pin Assignments
@@ -333,18 +321,14 @@ The value returned should be ignored.
 (a) \\
 \includegraphics[scale=0.7]{figure/spi_ctl-timing/read-byte2} \\
 (b)
-\caption{Timing diagram of a SPI read cycle.
+\caption{Timing diagram of SPI read cycle.
 Part (a) is the first 8-bits and part (b) is the second
-continuing from (a).
-The transactions at the start of b aren't really true,
-the data is constant from a to b.
-In part (a) the data is not valid until a cycle after the address
-is set.
-This is due to the time it takes the decoder to enable the chip and
-get valid data on the data bus.
-The data must be valid before the start of the second byte
-when it is loaded in to the shift register to be sent back on the SPI.
-}
+8-bits continuing from (a).
+Notice in part (a) where the ADDRESS is set and READ\_N becomes active (low).
+The data is not immediately read but instead it is delayed until
+the negative edge of the SCK.
+This is necessary for device such as RAM chips which may not produce
+valid data until a short time delay.}
 \label{fig:spi_read}
 \end{figure}
 
@@ -354,7 +338,7 @@ when it is loaded in to the shift register to be sent back on the SPI.
 (a) \\
 \includegraphics[scale=0.7]{figure/spi_ctl-timing/write-byte2} \\
 (b)
-\caption{Timing diagram of a SPI write cycle.
+\caption{Timing diagram of SPI write cycle.
 Part (a) is the first 8-bits and part (b) is the second
 continuing from (a).
 A write is not initiated until the end of the

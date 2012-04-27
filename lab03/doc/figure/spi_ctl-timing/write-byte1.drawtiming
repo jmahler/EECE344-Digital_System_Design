@@ -14,6 +14,6 @@ SCK=1 => SAMPLE="6".
 SCK=0 => PROPAGATE="6".
 SCK=1 => SAMPLE="7".
 SCK=0 => PROPAGATE="7".
-SCK=1 => SAMPLE="8" => ADDRESS="addr", DATA="X", READ_N=0.
-SCK=0 => PROPAGATE="8", DATA="data".
+SCK=1 => SAMPLE="8" => ADDRESS="addr", SCK => DATA="data".
+SCK=0 => PROPAGATE="8".
 SCK=0.

@@ -4,15 +4,14 @@
  *
  *   SPI_slave.v - SPI slave
  *
- * WARNING
- * -------
- *
- * This code is currently broken and not usable.
- *
  * DESCRIPTION
  * -----------
  *
  * This module controls the SPI to bus communication.
+ *
+ * Refer to the documentation (doc/) for a more detailed
+ * description of the timing singals used here.
+ * Look for the section titled "Timing diagram of SPI"
  *
  * The following SPI settings used by this module:
  *
@@ -55,8 +54,10 @@ module spi_ctl(
 	reg mosi_sample;
 
     reg rw;
+    parameter READ = 1'b1,
+              WRITE = 1'b0;
 
-    // when a read, drive the data bus
+    // drive the data bus for a write, high Z otherwise
     reg [7:0] write_data_bus;
     assign data_bus = (~(write_n | ~read_n)) ? write_data_bus : 8'bz;
 
@@ -71,6 +72,8 @@ module spi_ctl(
     // This tedious code is much easier to understand
     // along with timing digrams given in the documentation (doc/).
     // Look for the section titled "Timing diagram of SPI"
+    // There are two diagrams, one for the read cycle and one
+    // for the write cycle.  This code implements both of these.
 
     // This acts as a "one shot" used to indicate the start of a transaction
     reg start;
@@ -84,25 +87,28 @@ module spi_ctl(
     // SAMPLE
     always @(posedge start, posedge sck, posedge nss) begin
         if (nss) begin
+            // end of second byte
             read_n   <= 1'b1; // disable
         end else if ((start == 1'b1) && !(sck == 1'b0)) begin
+            // start, before first bit
             count    <= 1;
             read_n   <= 1'b1; // disable
         end else begin
+            // SAMPLE
             mosi_sample <= mosi;
             count       <= count + 1;
 
             if (7 == count) begin
                 // end of first byte
 
+                // we got the 7-bit address and rw bit
                 address_bus <= {r_reg[5:0], mosi};
                 rw          <= r_reg[6];
 
-                if (r_reg[6] == 1'b1)
-                    read_n <= 0;
-            end
-
-            if (15 == count && rw == 1'b0) begin
+                if (r_reg[6] == READ)
+                    read_n <= 1'b0; // disable
+            end else if (15 == count && rw == 1'b0) begin
+                // (WRITE), got the second byte, setup to write it to the bus
                 write_data_bus <= r_next;
             end
         end
@@ -110,26 +116,29 @@ module spi_ctl(
 
     // PROPAGATE
     always @(negedge sck, posedge nss) begin
+        // normal propagate (default)
         r_reg <= r_next;
 
         if (nss)
-            write_n <= 1; // disable
+            // end of second byte
+
+            write_n <= 1'b1; // disable
         else begin
             if (1 == count) begin
-                write_n <= 1; // disable
-            end
-
-            if (16 == count) begin
+                write_n <= 1'b1; // disable
+            end else if (8 == count) begin
+                // if (READ), load the data to be sent back
+                if (rw == READ)
+                    r_reg <= data_bus;
+            end else if (16 == count) begin
                 // end of second byte
 
-                if (rw == 1'b0) begin
-                    // drive the data to be written on to the bus
-                    write_n        <= 0;
-                    //write_data_bus <= r_next;
-                end
+                // if (WRITE), enable write.
+                //  (the enabled device will drive the bus)
+                if (rw == WRITE)
+                    write_n <= 1'b0; // enable
             end
         end
-
     end
 
 endmodule
