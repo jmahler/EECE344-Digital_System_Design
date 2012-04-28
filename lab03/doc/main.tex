@@ -81,71 +81,110 @@ cannot be changed due conflicts with other resources on the board.
 	\hline
 	pin & label & description &  function & Mach XO Ball & Header & Pin \\
 	\hline
-	12 & A0 & address & PL17D & L4 & J4 & 36 \\
+	12 & A0 & mem\_address & PL17D & L4 & J4 & 36 \\
 	\hline
-	11 & A1 & address & PL12D & L2 & J4 & 35 \\
+	11 & A1 & mem\_address & PL12D & L2 & J4 & 35 \\
 	\hline
-	10 & A2 & address & PL17C & L5 & J4 & 34 \\
+	10 & A2 & mem\_address & PL17C & L5 & J4 & 34 \\
 	\hline
-	9 & A3 & address & PL12C & K2 & J4 & 33 \\
+	9 & A3 & mem\_address & PL12C & K2 & J4 & 33 \\
 	\hline
-	8 & A4 & address & PL15C & M2 & J4 & 26 \\
+	8 & A4 & mem\_address & PL15C & M2 & J4 & 26 \\
 	\hline
-	7 & A5 & address & PL10C & G1 & J4 & 21 \\
+	7 & A5 & mem\_address & PL10C & G1 & J4 & 21 \\
 	\hline
-	6 & A6 & address & PL10D & H1 & J4 & 23 \\
+	6 & A6 & mem\_address & PL10D & H1 & J4 & 23 \\
 	\hline
-	5 & A7 & address & PL8D & H3 & J4 & 19 \\
+	5 & A7 & mem\_address & PL8D & H3 & J4 & 19 \\
 	\hline
-	27 & A8 & address & PL15D & N2 & J4 & 28 \\
+	27 & A8 & mem\_address & PL15D & N2 & J4 & 28 \\
 	\hline
-	26 & A9 & address & PL11C & J3 & J4 & 29 \\
+	26 & A9 & mem\_address & PL11C & J3 & J4 & 29 \\
 	\hline
-	23 & A10 & address & PL19A & N4 & J4 & 38 \\
+	23 & A10 & mem\_address & PL19A & N4 & J4 & 38 \\
 	\hline
-	25 & A11 & address & PL11D & K3 & J4 & 31 \\
+	25 & A11 & mem\_address & PL11D & K3 & J4 & 31 \\
 	\hline
-	4 & A12 & address & PL8C & G3 & J4 & 17 \\
+	4 & A12 & mem\_address & PL8C & G3 & J4 & 17 \\
 	\hline
-	28 & A13 & address & PL16D & R2 & J4 & 32 \\
+	28 & A13 & mem\_address & PL16D & R2 & J4 & 32 \\
 	\hline
-	3 & A14 & address & PL7C & E1 & J4 & 13 \\
+	3 & A14 & mem\_address & PL7C & E1 & J4 & 13 \\
 	\hline
-	31 & A15 & address & PL7D & F1 & J4 & 15 \\
+	31 & A15 & mem\_address & PL7D & F1 & J4 & 15 \\
 	\hline
-	2 & A16 & address & PL6D & D1 & J4 & 11 \\
+	2 & A16 & mem\_address & PL6D & D1 & J4 & 11 \\
 	\hline
-	30 & CE2 & chip enable & PL14C & N1 & J4 & 37 \\
+	13 & DQ0 & mem\_data & PL7A\_LV\_T & F2 & J3 & 25 \\
 	\hline
-	22 & CE\# & chip enable & PL19B & N3 & J4 & 40 \\
+	14 & DQ1 & mem\_data & PL17A\_LV\_T & K5 & J3 & 32 \\
 	\hline
-	29 & WE\# & write enable & PL14D & P1 & J4 & 39 \\
+	15 & DQ2 & mem\_data & PL18A\_LV\_T & M5 & J3 & 38 \\
 	\hline
-	24 & OE\# & output enable & PL16C & R1 & J4 & 30 \\
+	17 & DQ3 & mem\_data & PL9A\_LV\_T & H4 & J3 & 37 \\
 	\hline
-	13 & DQ0 & data & PL7A\_LV\_T & F2 & J3 & 25 \\
+	18 & DQ4 & mem\_data & PL8A\_LV\_T & G4 & J3 & 31 \\
 	\hline
-	14 & DQ1 & data & PL17A\_LV\_T & K5 & J3 & 32 \\
+	19 & DQ5 & mem\_data & PL16A\_LV\_T & J4 & J3 & 26 \\
 	\hline
-	15 & DQ2 & data & PL18A\_LV\_T & M5 & J3 & 38 \\
+	20 & DQ6 & mem\_data & PL15A\_LV\_T & L3 & J3 & 20 \\
 	\hline
-	17 & DQ3 & data & PL9A\_LV\_T & H4 & J3 & 37 \\
-	\hline
-	18 & DQ4 & data & PL8A\_LV\_T & G4 & J3 & 31 \\
-	\hline
-	19 & DQ5 & data & PL16A\_LV\_T & J4 & J3 & 26 \\
-	\hline
-	20 & DQ6 & data & PL15A\_LV\_T & L3 & J3 & 20 \\
-	\hline
-	21 & DQ7 & data & PL5A\_LV\_T & B1 & J3 & 19 \\
+	21 & DQ7 & mem\_data & PL5A\_LV\_T & B1 & J3 & 19 \\
 	\hline
 	32 & Vcc & suppy voltage & & & J9 & 5 \\
 	\hline
 	16 & Vss & ground & & & J3 & 36 \\
 	\hline
 \end{tabular}
-\caption{Pin assignments between RAM chip \#1 and CPLD.}
+\caption{Pin assignments between RAM chip and the CPLD
+which are common to both chips.
+See Table \ref{tbl:rampinsuniq} for those pins which are
+unique for each chip.
+}
 \end{table}
+
+\begin{table}
+\center
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+	\multicolumn{4}{|c|}{\textbf{RAM \#1}} & \multicolumn{4}{|c|}{\textbf{CPLD}} \\
+	\hline
+    pin & label & variable & description &  function & Mach XO Ball & Header & Pin \\
+    \hline
+    30 & CE2 & mem1\_ce2 & chip enable & PL14C & N1 & J4 & 37 \\
+	\hline
+    22 & CE\# & mem1\_ceh\_n & chip enable & PL19B & N3 & J4 & 40 \\
+	\hline
+    29 & WE\# & mem1\_we\_n & write enable & PL14D & P1 & J4 & 39 \\
+	\hline
+    24 & OE\# & mem1\_oe\_n & output enable & PL16C & R1 & J4 & 30 \\
+	\hline
+\end{tabular}
+
+\vspace{5mm}  
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+	\multicolumn{4}{|c|}{\textbf{RAM \#2}} & \multicolumn{4}{|c|}{\textbf{CPLD}} \\
+	\hline
+    pin & label & variable & description &  function & Mach XO Ball & Header & Pin \\
+    \hline
+    30 & CE2 & mem2\_ce2 & chip enable & PL8B & G5 & J3 & 33 \\
+	\hline
+    22 & CE\# & mem2\_ceh\_n & chip enable & PL11B & J2 & J3 & 4 \\
+	\hline
+    29 & WE\# & mem2\_we\_n & write enable & PL19B & H5 & J3 & 39 \\
+	\hline
+    24 & OE\# & mem2\_oe\_n & output enable & PL18B & M4 & J3 & 40 \\
+	\hline
+\end{tabular}
+
+\caption{Pin assignments between RAM chip and the CPLD
+which are unique to each RAM chip.}
+\label{tbl:rampinsuniq}
+\end{table}
+
 
 % TODO - break each in to own table
 \begin{table}
@@ -176,14 +215,14 @@ cannot be changed due conflicts with other resources on the board.
 		\hline
 		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
 		\hline
-		in\_sw[0] & input switch 8 & 8 & PT2C & B2 & J5 & 1 \\
-		in\_sw[1] & input switch 7 & 7 & PT9A & D8 & J5 & 2 \\
-		in\_sw[2] & input switch 6 & 6 & PT2D & B3 & J5 & 3 \\
-		in\_sw[3] & input switch 5 & 5 & PT9C & E8 & J5 & 4 \\
-		in\_sw[4] & input switch 4 & 4 & PT3A & A2 & J5 & 5 \\
-		in\_sw[5] & input switch 3 & 3 & PT9D & E9 & J5 & 6 \\
-		in\_sw[6] & input switch 2 & 2 & PT3B & A3 & J5 & 7 \\
-		in\_sw[7] & input switch 1 & 1 & PT10A & A10 & J5 & 8 \\
+		switches[0] & input switch 8 & 8 & PT2C & B2 & J5 & 1 \\
+		switches[1] & input switch 7 & 7 & PT9A & D8 & J5 & 2 \\
+		switches[2] & input switch 6 & 6 & PT2D & B3 & J5 & 3 \\
+		switches[3] & input switch 5 & 5 & PT9C & E8 & J5 & 4 \\
+		switches[4] & input switch 4 & 4 & PT3A & A2 & J5 & 5 \\
+		switches[5] & input switch 3 & 3 & PT9D & E9 & J5 & 6 \\
+		switches[6] & input switch 2 & 2 & PT3B & A3 & J5 & 7 \\
+		switches[7] & input switch 1 & 1 & PT10A & A10 & J5 & 8 \\
 		          & power, Vdd, pull up &      &     &    & J9 & 1 \\
 		          & ground &  & & & J6 & 2 \\
 		\hline
@@ -196,16 +235,16 @@ cannot be changed due conflicts with other resources on the board.
 		\hline
 		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
 		\hline
-%		led\_ext[10] & output led 10 & 10 & PT5C & B4 & J5 & 21 \\
-%		led\_ext[9] & output led 9 & 9 & PT12A & A11  & J5 & 22 \\
-		led\_ext[0] & output led 8 & 8 & PT15D & B5   & J5 & 23 \\
-		led\_ext[1] & output led 7 & 7 & PT12B & A12  & J5 & 24 \\
-		led\_ext[2] & output led 6 & 6 & PT6E  & E7   & J5 & 25 \\
-		led\_ext[3] & output led 5 & 5 & PT12C & B11  & J5 & 26 \\
-		led\_ext[4] & output led 4 & 4 & PT6F  & E6   & J5 & 27 \\
-		led\_ext[5] & output led 3 & 3 & PT12D & B12  & J5 & 28 \\
-		led\_ext[6] & output led 2 & 2 & PT16C & A5   & J5 & 29 \\
-		led\_ext[7] & output led 1 & 1 & PT13C & C11  & J5 & 30 \\
+%		bar\_leds[10] & output led 10 & 10 & PT5C & B4 & J5 & 21 \\
+%		bar\_leds[9] & output led 9 & 9 & PT12A & A11  & J5 & 22 \\
+		bar\_leds[0] & output led 8 & 8 & PT15D & B5   & J5 & 23 \\
+		bar\_leds[1] & output led 7 & 7 & PT12B & A12  & J5 & 24 \\
+		bar\_leds[2] & output led 6 & 6 & PT6E  & E7   & J5 & 25 \\
+		bar\_leds[3] & output led 5 & 5 & PT12C & B11  & J5 & 26 \\
+		bar\_leds[4] & output led 4 & 4 & PT6F  & E6   & J5 & 27 \\
+		bar\_leds[5] & output led 3 & 3 & PT12D & B12  & J5 & 28 \\
+		bar\_leds[6] & output led 2 & 2 & PT16C & A5   & J5 & 29 \\
+		bar\_leds[7] & output led 1 & 1 & PT13C & C11  & J5 & 30 \\
 		          & ground &  & & & J6 & 16 \\
 		\hline
 		\multicolumn{7}{|c|}{\textbf{reset}} \\
@@ -217,7 +256,7 @@ cannot be changed due conflicts with other resources on the board.
 		\hline
 		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
 		\hline
-		rst\_l & active low reset & NRST & PL7B & G2 & J3 & 27 \\
+		reset\_n & active low reset & NRST & PL7B & G2 & J3 & 27 \\
 		\hline
 	\end{tabular}
 	\caption{Definition of the pin assignments between the ARM board,
@@ -359,6 +398,12 @@ of time for any memory timings or other operations to be done.
 
 % {{{ Bus Interface
 \section{Bus Interface}
+
+% }}}
+
+% {{{ Conclusion
+\section{Conclusion}
+% difficulties
 
 % }}}
 
