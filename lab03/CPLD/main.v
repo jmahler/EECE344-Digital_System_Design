@@ -34,12 +34,12 @@ module main(
     inout  [7:0]  mem_data,
     output        mem1_ceh_n,
                   mem1_ce2,
-                  mem1_read_n,
-                  mem1_write_n,
+                  mem1_we_n,
+                  mem1_oe_n,
                   mem2_ceh_n,
                   mem2_ce2,
-                  mem2_read_n,
-                  mem2_write_n,
+                  mem2_we_n,
+                  mem2_oe_n,
     output [7:0]  board_leds,
                   bar_leds,
     input  [7:0]  switches);
@@ -55,11 +55,11 @@ module main(
     wire bar_led_ce_n,
          board_led_ce_n,
          switch_ce_n,
-         ram1_ce_n,
-         ram2_ce_n;
+         mem1_ce_n,
+         mem2_ce_n;
 
 	decoder decoder1(address, bar_led_ce_n, board_led_ce_n, switch_ce_n,
-                    ram1_ce_n, ram2_ce_n);
+                    mem1_ce_n, mem2_ce_n);
 
 	led_ctl board_leds1(read_n, write_n, reset_n, board_led_ce_n,
                         data, board_leds);
@@ -67,15 +67,17 @@ module main(
 	led_ctl bar_leds1(read_n, write_n, reset_n, bar_led_ce_n,
                         data, bar_leds);
 
-    spi_ctl spi1(nss, mosi, sck, miso, reset_n, address, data, read_n, write_n);
+    spi_ctl spi1(nss, mosi, sck, miso, address, data, read_n, write_n);
 
 	switch_ctl sw1(read_n, switch_ce_n, data, switches);
 
-	mem_ctl mem1(read_n, write_n, mem1_ce_n, clk, address, data, mem_data,
-                    mem_address, mem1_ceh_n, mem1_ce2, mem1_we_n, mem1_oe_n);
+	mem_ctl mem1(read_n, write_n, mem1_ce_n, clk, address, data,
+                mem_data, mem_address, mem1_ceh_n, mem1_ce2, mem1_we_n,
+                mem1_oe_n);
 
-	mem_ctl mem2(read_n, write_n, mem2_ce_n, clk, address, data, mem_data,
-                    mem_address, mem2_ceh_n, mem2_ce2, mem2_we_n, mem2_oe_n);
+	mem_ctl mem2(read_n, write_n, mem2_ce_n, clk, address, data,
+                mem_data, mem_address, mem2_ceh_n, mem2_ce2, mem2_we_n,
+                mem2_oe_n);
 
 endmodule
 

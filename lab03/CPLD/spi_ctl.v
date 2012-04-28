@@ -42,7 +42,6 @@ module spi_ctl(
                      mosi,
                      sck,
     output           miso,
-    input            reset_n,
     output reg [6:0] address_bus,
     inout      [7:0] data_bus,
     output reg       read_n,
@@ -86,10 +85,15 @@ module spi_ctl(
 
     // SAMPLE
     always @(posedge start, posedge sck, posedge nss) begin
+        // defaults
+        count          <= 1;
+        write_data_bus <= 8'h00;
+
         if (nss) begin
             // end of second byte
-            read_n   <= 1'b1; // disable
-        end else if ((start == 1'b1) && !(sck == 1'b0)) begin
+            read_n <= 1'b1; // disable
+        //end else if ((start == 1'b1) && !(sck == 1'b0)) begin
+        end else if (start) begin
             // start, before first bit
             count    <= 1;
             read_n   <= 1'b1; // disable
@@ -116,14 +120,16 @@ module spi_ctl(
 
     // PROPAGATE
     always @(negedge sck, posedge nss) begin
-        // normal propagate (default)
-        r_reg <= r_next;
+        // defaults
+        r_reg <= 8'h00;
 
-        if (nss)
+        if (nss) begin
             // end of second byte
 
             write_n <= 1'b1; // disable
-        else begin
+        end else begin
+            r_reg <= r_next;
+
             if (1 == count) begin
                 write_n <= 1'b1; // disable
             end else if (8 == count) begin
