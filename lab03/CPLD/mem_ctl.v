@@ -33,8 +33,6 @@ module mem_ctl(
                       we_n,
                       oe_n);
 
-    reg [4:0] i;
-
 	// tie unused address bits low
 	assign mem_address[16:7] = 0;
 
@@ -71,6 +69,7 @@ module mem_ctl(
 
     always @(posedge clk) begin
         if (~read_n) begin
+            // READ CYCLE 2 (ref datasheet)
             case (state)
                 START: begin
                     ceh_n  <= 1'b0;
@@ -85,14 +84,15 @@ module mem_ctl(
                     state  <= DONE;
             endcase
         end else if (~write_n) begin
+            // WRITE CYCLE 1 (ref datasheet) 
             case (state)
                 START: begin
-                    ceh_n  <= 1'b0;
-                    ce2    <= 1'b1;
-                    state  <= WRITE2;
+                    ceh_n <= 1'b0;
+                    ce2   <= 1'b1;
+                    state <= WRITE2;
                 end
                 WRITE2: begin
-                    oe_n   <= 1'b0;
+                    we_n   <= 1'b0;
                     state  <= DONE;
                 end
                 default:
@@ -101,7 +101,7 @@ module mem_ctl(
         end else begin
             state <= START;
             if (ce_n) begin
-                // diable
+                // disable
                 oe_n  <= 1'b1;
                 we_n  <= 1'b1;
                 ceh_n <= 1'b1;
