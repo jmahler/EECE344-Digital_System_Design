@@ -1,0 +1,28 @@
+
+digraph state2 {
+    {rank=hi; start}
+    {rank=same; enter_data display_results enter_cmd}
+
+    start -> enter_cmd;
+
+    enter_cmd -> read_cmd_1;
+
+    read_cmd_1 -> read_cmd_2;
+
+    read_cmd_2 -> enter_data [label="write"];
+
+    read_cmd_2 -> execute_1 [label=" read"];
+
+    enter_data -> read_data_1;
+
+    read_data_1 -> read_data_2;
+
+    read_data_2 -> execute_1;
+
+    execute_1 -> execute_2;
+
+    execute_2 -> display_results;
+
+    display_results -> enter_cmd;
+
+}

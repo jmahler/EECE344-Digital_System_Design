@@ -186,6 +186,26 @@ which are unique to each RAM chip.}
 \end{table}
 
 
+\begin{table}
+\center
+\begin{tabular}{|l|l|l|}
+    \hline
+    \multicolumn{3}{|c|}{\textbf{Memory Map}} \\
+    \hline
+    address (hex) & name & variable \\
+    \hline
+    0x74 & switches & switch\_ce\_n \\
+    0x6C & bar leds & bar\_led\_ce\_n \\
+    0x50 - 0x5F & RAM \#2 & mem2\_ce\_n \\
+    0x2F & board leds & board\_led\_ce\_n \\
+    0x00 - 0x0F & RAM \#1 & mem1\_ce\_n \\
+    \hline
+\end{tabular}
+\caption{Device memory map.}
+\label{tbl:memmap}
+\end{table}
+
+
 % TODO - break each in to own table
 \begin{table}
 	\center
@@ -393,6 +413,22 @@ edge of \verb+nss+ (going disabled).
 Since the clock speed of the SPI is on the order of kHz and the
 clock inside the CPLD is on the order of MHz there should be plenty
 of time for any memory timings or other operations to be done.
+
+\begin{figure}
+\center
+\includegraphics[scale=0.8]{figure/arm-state_diagram/arm-state_diagram}
+\caption{State diagram of ARM board operation.
+The suffixes \_1 and \_2 refer to the first and second bytes
+sent/received over SPI.
+The states display\_results, enter\_data and enter\_cmd 
+wait for the user set the input switches as necessary and then press
+the user button.
+read\_cmd reads the input switches to get the command (address and rw bit).
+If the command is a write read\_data reads the switches again to get the data.
+And execute performed the read/write command.
+}
+\label{fig:armstate}
+\end{figure}
 
 % }}}
 
