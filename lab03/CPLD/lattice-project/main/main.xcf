@@ -20,8 +20,8 @@
 				<BScanVal>0</BScanVal>
 			</Bypass>
 			<File>C:/ihatewindows/EECE344-Digital_System_Design/lab03/CPLD/lattice-project/main/main_main.jed</File>
-			<FileTime>4/10/2012 3:25:23</FileTime>
-			<JedecChecksum>0x079C</JedecChecksum>
+			<FileTime>4/27/2012 21:26:35</FileTime>
+			<JedecChecksum>0x058C</JedecChecksum>
 			<Operation>FLASH Erase,Program,Verify</Operation>
 			<Option>
 				<SVFVendor>JTAG STANDARD</SVFVendor>

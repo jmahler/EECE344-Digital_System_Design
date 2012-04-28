@@ -4,7 +4,7 @@
  * NAME
  * ----
  *
- * enable_button(), button_pressed()
+ * button.h
  *
  * DESCRIPTION
  * -----------
@@ -20,11 +20,22 @@
  *
  *	if (button_pressed()) {
  *		// do something
- *	} else {
+ *	}
+ *
+ *  if (button_released() {
  *		// do something else
  * 	}
+ *
+ *  // block until button is pressed
+ *  // and released.
+ *  wait_button_press();
+ *
  */
 
 void enable_button();
 
 unsigned int button_pressed();
+
+unsigned int button_released();
+
+void wait_button_press();

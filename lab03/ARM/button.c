@@ -33,3 +33,18 @@ inline
 unsigned int button_pressed() {
 	return (COMP->CSR & COMP_CSR_CMP1OUT);
 }
+
+inline
+unsigned int button_released() {
+	return (! button_pressed());
+}
+
+inline
+void wait_button_press() {
+
+    while (button_released());
+
+    while (button_pressed());
+
+    return;
+}
