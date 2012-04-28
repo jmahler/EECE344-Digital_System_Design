@@ -84,7 +84,7 @@ module spi_ctl(
     end
 
     // SAMPLE
-    always @(posedge start, posedge sck, posedge nss) begin
+    always @(posedge sck, posedge nss) begin
         // defaults
         count          <= 1;
         write_data_bus <= 8'h00;
