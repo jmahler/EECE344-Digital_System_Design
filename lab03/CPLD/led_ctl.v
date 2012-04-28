@@ -2,7 +2,7 @@
  * NAME
  * ----
  *
- *   led_ctl - bussed LED control
+ * led_ctl - bussed LED control
  *
  *
  * DESCRIPTION
@@ -11,14 +11,9 @@
  * 8-bit bar led module suitable for use with a "bus"
  * consisting of address, data and control lines.
  *
- * Any time it is enabled data can be read from (rw = 1)
- * or written to (rw = 0).  At all other times the data
- * line is high z.
- *
- * To write, data must be assigned to 'data', 'rw' set to 0 (write),
- * and then 'ce' set to high.
- * A similar sequence is performed for a read except that rw = 1.
- *
+ * To write, data must be assigned to the data bus ('data'),
+ * write must be enabled (write_n=0), read must not be
+ * enabled (read_n=1), and the chip must be enabled (ce_n=0).
  *
  * AUTHOR
  * ------
@@ -41,6 +36,9 @@ module led_ctl(
     // drive the leds values on to the data bus.
     assign data = (~(ce_n | read_n | ~write_n)) ? leds : 8'bz;
 
+    // This is a psuedo wire that goes low when BOTH write_n
+    // and ce_n are low.
+    // ~A & ~B = ~(A | B)  (De Morgans Law)
     wire write_ce_n;
     assign write_ce_n = write_n | ce_n;
 
