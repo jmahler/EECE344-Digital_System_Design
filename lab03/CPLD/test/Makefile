@@ -5,7 +5,7 @@
 
 
 all: decoder-test.vcd switch_ctl-test.vcd led_ctl-test.vcd spi_ctl-test.vcd \
-	mem_ctl-test.vcd
+	mem_ctl-test.vcd main-test.vcd
 
 decoder-test.vcd: decoder-test
 	./$<
@@ -20,6 +20,9 @@ spi_ctl-test.vcd: spi_ctl-test
 	./$<
 
 mem_ctl-test.vcd: mem_ctl-test
+	./$<
+
+main-test.vcd: main-test
 	./$<
 
 decoder-test: decoder-test.v ../decoder.v
@@ -37,6 +40,9 @@ spi_ctl-test: spi_ctl-test.v ../spi_ctl.v
 mem_ctl-test: mem_ctl-test.v ../mem_ctl.v
 	iverilog $< -o $@
 
+main-test: main-test.v
+	iverilog $< -o $@
+
 #a.out: main-test.v main.v SPI_slave.v bar_leds.v decoder.v switches.v ram.v
 #	iverilog $<
 
@@ -50,5 +56,6 @@ clean:
 	-rm -f spi_ctl-test spi_ctl-test.vcd
 	-rm -f led_ctl-test led_ctl-test.vcd
 	-rm -f switch_ctl-test switch_ctl-test.vcd
+	-rm -f main-test main-test.vcd
 
 

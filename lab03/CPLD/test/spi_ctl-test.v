@@ -7,13 +7,12 @@ module test;
 	reg mosi;
 	reg sck;
 	wire miso;
-	reg reset_n;
     wire [6:0] address_bus;
     wire [7:0] data_bus;
     wire read_n;
     wire write_n;
 
-    spi_ctl s1(nss, mosi, sck, miso, reset_n, address_bus, data_bus, read_n, write_n);
+    spi_ctl s1(nss, mosi, sck, miso, address_bus, data_bus, read_n, write_n);
 
     // There are no devices connected to the bus for this test
     // bench so here we use write_data_bus to drive the bus
@@ -31,7 +30,6 @@ module test;
 		$dumpvars(0,test);
 
 		sck     = 0;
-		reset_n = 1; // enabled
 		mosi    = 0;
 		nss     = 1;  // disabled
 
@@ -42,9 +40,6 @@ module test;
 
         #2;
 
-        #1 reset_n = 0;
-        #1 reset_n = 1;
-
         /*
          * Given below are examples of a read cylcle and a write cycle.
          * Either or both can be uncommented to test their functionality.
@@ -54,6 +49,7 @@ module test;
 
         // *** EXAMPLE #1: WRITE CYCLE ***
 
+        /*
 		#1 nss = 0; // enabled
 
         //
@@ -83,6 +79,7 @@ module test;
 		SPI_once();
 
 		#1 nss = 1; // disabled
+        */
 
         // *** END EXAMPLE #1 ***
 

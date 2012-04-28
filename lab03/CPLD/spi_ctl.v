@@ -92,15 +92,16 @@ module spi_ctl(
         if (nss) begin
             // end of second byte
             read_n <= 1'b1; // disable
-        //end else if ((start == 1'b1) && !(sck == 1'b0)) begin
-        end else if (start) begin
-            // start, before first bit
-            count    <= 1;
-            read_n   <= 1'b1; // disable
         end else begin
             // SAMPLE
             mosi_sample <= mosi;
-            count       <= count + 1;
+
+            if (start) begin
+                count  <= 1;
+                read_n <= 1'b1; // disable
+            end else begin
+                count       <= count + 1;
+            end
 
             if (7 == count) begin
                 // end of first byte
