@@ -35,7 +35,7 @@
       
       
       
-    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\main.c</Filename><XPos>0</XPos><YPos>41</YPos><SelStart>1236</SelStart><SelEnd>1236</SelEnd></Tab><ActiveTab>0</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\Libraries\STM32L1xx_StdPeriph_Driver\src\stm32l1xx_lcd.c</Filename><XPos>0</XPos><YPos>522</YPos><SelStart>21560</SelStart><SelEnd>21560</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\button.c</Filename><XPos>0</XPos><YPos>0</YPos><SelStart>873</SelStart><SelEnd>873</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
+    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\main.c</Filename><XPos>0</XPos><YPos>98</YPos><SelStart>2244</SelStart><SelEnd>2244</SelEnd></Tab><ActiveTab>0</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\Libraries\STM32L1xx_StdPeriph_Driver\src\stm32l1xx_lcd.c</Filename><XPos>0</XPos><YPos>522</YPos><SelStart>21560</SelStart><SelEnd>21560</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\button.c</Filename><XPos>0</XPos><YPos>0</YPos><SelStart>712</SelStart><SelEnd>712</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
     <Positions>
       
       
