@@ -432,6 +432,29 @@ And execute performed the read/write command.
 
 % }}}
 
+% {{{ User Interface
+\section{User Interface}
+
+The user interface is derived from the state diagram
+for the ARM as shown in Figure \ref{fig:armstate}.
+But there are fewer states that the user must be concerned
+with.
+
+As an example of reading the switches.
+Notice that the only difference is the inclusion of the
+rw bit as part of the data value whereas the address
+is only 7-bits and excludes this part.
+\begin{verbatim}
+CMD
+74 R F4
+\end{verbatim}
+
+Refer to the memory map (Table \ref{tbl:memmap}) for
+examples of other address that can be read from and written
+to.
+
+% }}}
+
 % {{{ Bus Interface
 \section{Bus Interface}
 
