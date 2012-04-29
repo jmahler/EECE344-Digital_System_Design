@@ -57,9 +57,8 @@ module test;
 	wire MISO;
 	wire [7:0] led_ext;
 	wire [7:0] in_sw;
-	wire [7:0] led;
 
-	main m1(reset, SS_L, sclk, MOSI, MISO, led_ext, in_sw, led);
+	main m1(reset, SS_L, sclk, MOSI, MISO, led_ext, in_sw);
 
 	wire [7:0] mosi_val;
 	assign mosi_val = 8'h4f;
