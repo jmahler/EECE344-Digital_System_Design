@@ -432,6 +432,9 @@ void NSS_enable() {
  */
 
 uint8_t SPI_once(const uint8_t SPI1_Tx) {
+    uint8_t SPI1_Rx;
+    unsigned int i;
+
     while (1) {
         if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_BSY)) {
             // kill some time
@@ -442,8 +445,9 @@ uint8_t SPI_once(const uint8_t SPI1_Tx) {
             // read the received data from the last transaction
             //SPI_I2S_ClearFlag(SPI1, SPI_I2S_FLAG_RXNE);
 
-            return SPI_I2S_ReceiveData(SPI1);
+            SPI1_Rx = SPI_I2S_ReceiveData(SPI1);
 
+            break;
         } else if (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE)) {
             // we can transmit more data
 
@@ -452,6 +456,11 @@ uint8_t SPI_once(const uint8_t SPI1_Tx) {
             while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE));
         }
     }
+
+    for (i = 0; i < 1e5; i++)
+        asm("nop");
+
+    return SPI1_Rx;
 }
 // }}}
 
