@@ -183,10 +183,11 @@ void main() {
             state = DISPLAY_RESULTS;
         } else if (DISPLAY_RESULTS == state) {
 
+            // *The LCD can only display 6 characters
             if (rw) 
-                sprintf(str, "%x %c %x", addr, 'R', SPI1_Rx);
+                sprintf(str, "%.2x%c %.2x", addr, 'R', SPI1_Rx);
             else
-                sprintf(str, "%x %c %x", addr, 'W', to_write);
+                sprintf(str, "%.2x%c %.2x", addr, 'W', to_write);
 
             LCD_GLASS_Clear();
             LCD_GLASS_DisplayString((unsigned char *) str);
