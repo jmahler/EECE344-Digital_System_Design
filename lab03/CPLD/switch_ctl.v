@@ -27,5 +27,8 @@ module switch_ctl(
     output wire [7:0] data,
     input       [7:0] switches);
 
-    assign data = (~(ce_n | read_n)) ? switches : 8'bz;
+    assign data = (~(ce_n | read_n)) ? ~(switches) : 8'bz;
+    // Due to the hardware configuration of the pull up
+    // resistors the switches are inverted (on is 0 when it should be 1).
+    // ~(switches) is used to fix this problem.
 endmodule
