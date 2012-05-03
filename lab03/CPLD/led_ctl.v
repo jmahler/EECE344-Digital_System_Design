@@ -47,7 +47,7 @@ module led_ctl(
     // If write_n or ce_n change such that write is enabled
     // (write_n lo) and the chip is enabled (ce_n lo)
     // write the data to the leds.
-    always @(negedge reset_n, negedge write_ce_n) begin
+    always @(negedge reset_n, posedge write_ce_n) begin
         if (~reset_n)
             leds <= 8'h00;
         else

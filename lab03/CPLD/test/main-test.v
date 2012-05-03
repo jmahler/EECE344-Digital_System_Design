@@ -63,35 +63,90 @@ module test;
         // (kHz to MHz) so this is a worst case situation.
         // Currently this is only important for the memory modules.
 
-        // *** EXAMPLE #1, read switches ***
-        switches = 8'h0F;
+        // {{{ *** EXAMPLE #1, read switches ***
+        // tested OK [jmm]  Wed, 02 May 2012 10:45:33 -0700
 
-        #10 nss = 0;
+        /*
+        // input value of external switches
+        switches = ~(8'hF4);
+        // The switch_ctl module inverts the input switch values
+        // due to the behavior of the pull up circuit.
+        // Here we invert the values to mimic this behavior.
+
+        #10 nss = 0;  // enabled
 
         //
         // At the END of the first byte:
         //
         //  read_n = 0, ce_n = 0  (enabled)
         //
-        //  data = 0x0F  (value of switches)
+        //  data = 0xF4  (value of switches)
         //
 
         // address of switches (0x74), read (0x80)
-        w_mosi = 8'h74 | 8'h80;
+        w_mosi = 8'h74 | 8'h80; // switches value with WRITE bit set
         SPI_once();
 
         //
         // For the second byte the value read from the
-        // switches (0x0F) should be seen transferred
+        // switches (0xF4) should be seen transferred
         // across the miso pin.
         //
 
         w_mosi = 8'h00; // form feed, can be any value
         SPI_once();
 
-        #10 nss = 1;
+        #10 nss = 1; // disable
+        */
+        // *** END EXAMPLE #1 *** }}}
 
-        // *** END EXAMPLE #1 ***
+        // {{{ *** EXAMPLE #2, write bar leds ***
+        // tested OK [jmm]  Wed, 02 May 2012 19:20:39 -0700
+
+        #10 nss = 0; // enable
+
+        // ADDRESS to write (rw bit left at 0 for WRITE)
+        w_mosi = 8'h6C;
+        SPI_once();
+
+        // DATA to be written
+        //
+        // At the END of the SECOND byte:
+        //
+        //   - leds should have the value 0x73
+        //   - when write_ce_n is low, data should be 0x73
+        //   - when write_ce_n becomes disabled, data should go high z
+        //
+        w_mosi = 8'h73;
+        SPI_once();
+
+        #10 nss = 1; // disable
+
+        // *** END EXAMPLE #2 *** }}}
+
+
+        // {{{ *** EXAMPLE #3, read bar leds ***
+
+        #10 nss = 0;  // enabled
+
+        //
+        // At the END of the FIRST byte:
+        //   - the value stored in 'leds' should be driven on to 'data'
+        //
+
+        // address of bar leds (0x6C), read (0x80)
+        w_mosi = 8'h6C | 8'h80;
+        SPI_once();
+
+        // At the END of the SECOND byte:
+        //  - the 'data' should go high z
+        //
+
+        w_mosi = 8'h00; // form feed, can be any value
+        SPI_once();
+
+        #10 nss = 1; // disable
+        // *** END EXAMPLE #3 *** }}}
 
         #10 $finish;
 	end

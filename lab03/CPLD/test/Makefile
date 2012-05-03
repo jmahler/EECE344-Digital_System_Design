@@ -41,7 +41,7 @@ spi_ctl-test: spi_ctl-test.v ../spi_ctl.v
 mem_ctl-test: mem_ctl-test.v ../mem_ctl.v
 	iverilog $(OPTS) -o $@ $< 
 
-main-test: main-test.v
+main-test: main-test.v ../mem_ctl.v ../spi_ctl.v ../led_ctl.v ../switch_ctl.v ../decoder.v
 	iverilog $(OPTS) -o $@ $< 
 
 #a.out: main-test.v main.v SPI_slave.v bar_leds.v decoder.v switches.v ram.v

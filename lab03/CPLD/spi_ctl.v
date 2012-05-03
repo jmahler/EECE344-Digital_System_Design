@@ -87,7 +87,6 @@ module spi_ctl(
     always @(posedge sck, posedge nss) begin
         // defaults
         count          <= 1;
-        write_data_bus <= 8'h00;
 
         if (nss) begin
             // end of second byte
