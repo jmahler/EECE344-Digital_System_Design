@@ -34,7 +34,7 @@ module led_ctl(
     // If we are enabled (ce_n lo) and read is enabled (read_n lo)
     // and write is not enabled (write_n hi)
     // drive the leds values on to the data bus.
-    assign data = (~(ce_n | read_n | ~write_n)) ? leds : 8'bz;
+    assign data = (~(ce_n | read_n | ~write_n)) ? ~(leds) : 8'bz;
 
     // This is a psuedo wire that goes low when BOTH write_n
     // and ce_n are low.
@@ -51,6 +51,6 @@ module led_ctl(
         if (~reset_n)
             leds <= 8'h00;
         else
-            leds <= data;
+            leds <= ~(data);
     end
 endmodule
