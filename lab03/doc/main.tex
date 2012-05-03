@@ -221,7 +221,7 @@ which are unique to each RAM chip.}
 		name & description & pin  &  function & Mach XO Ball & Header & Pin \\
 		\hline
 		SCLK & SPI clock & PA5 & PT9B & D7 & J9 & 11 \\
-		SS\_L & SPI slave select & PB5 & PR4C & F13 & J7 & 1 \\
+		NSS & SPI slave select & PB5 & PR4C & F13 & J7 & 1 \\
 		MOSI & SPI master out slave in & PA12 & PR4D & F12 & J7 & 3 \\
 		MISO & SPI master in slave out & PA11 & PR5C  & B16 & J7 & 5 \\
 		     & ground                  & GND  &       &     & J8 & 5 \\
@@ -327,14 +327,42 @@ This can then be connected to the CPLD to cause
 it to reset using \verb+GSRN+\citetext{\citealp[Pg. 13, 46, 50, 53]{DS1002}; \citealp[Pg. 8]{EB66}}.
 Table \ref{tbl:pins} lists the exact pins that were used.
 
+\clearpage
+
 % }}}
 
 % {{{ SPI protocol
 \section{SPI protocol}
 
-The SPI protocol uses typical SPI transitions
-\citetext{ \citealp[Pg. 278]{cady2009microcontrollers}; \citealp[Pg. 665]{STRM0038}}
-and the configuration options used are given in Table \ref{tbl:spi}.
+Communication with the "bus" on the CPLD is accomplished using SPI
+\citetext{ \citealp[Pg. 278]{cady2009microcontrollers}; \citealp[Pg. 665]{STRM0038}}.
+For the bus there are two required operations: read and write.
+And in order to perform these operations it requires a minimum of
+two transactions over the SPI.
+A read, for example, would send the address in the first transaction.
+And in the second transaction the data read would be returned.
+A write is similar except that for the second transaction the
+data to be written is sent.
+The format of the transaction is defined in Table \ref{tbl:spiformat}.
+
+\begin{table}
+\center
+\begin{tabular}{|c|c|c|}
+    \multicolumn{1}{l}{8} & \multicolumn{1}{l}{7} & \multicolumn{1}{r}{1} \\
+\hline
+rw bit & \multicolumn{2}{|c|}{address} \\
+\hline
+\multicolumn{3}{|c|}{data} \\
+\hline
+\end{tabular}
+\caption{Format of two byte SPI transactions.}
+\label{tbl:spiformat}
+\end{table}
+
+This implementation has the SPI settings hard coded as shown
+in Table \ref{tbl:spi}.
+Both the ARM and the CPLD must use these same settings in order
+to work properly with each other.
 
 \begin{table}
 \center
@@ -345,34 +373,30 @@ and the configuration options used are given in Table \ref{tbl:spi}.
 	MSB & first \\
 	CPOL & 0 \\
 	CPHA & 0 \\
-	NSS & slave select on low \\
+	NSS & slave select\\
 	\hline
 \end{tabular}
 \caption{SPI configuration options}
 \label{tbl:spi}
 \end{table}
 
-Normally the SPI protocol is enabled using the NSS pin at the
-start of a transaction and disabled at the end of 8-bits.
-In this case it was necessary to transfer two bytes.
-And it was also necessary to detect the start/end of the transaction.
-To accomplish this the SPI protocol was modified so that NSS
-remains enabled for two bytes (16 bits).
-This solutions required no additional pins.
+A complication of this two byte protocol pertains to how to
+determine which byte is the first and which is the second.
+The method used here is to modify the SPI protocol so that the NSS
+signal is held active across two bytes instead of just one.
+This solution requires no additional hardware and is straight forward
+to implement in the CPLD.
 
-To communicate with the bus requires two bytes of data with
-8-bits each.
-The first byte sent from the master to the slave
-contains the read/write bit and the address.
-The first return byte is ignored.
+Because the SPI is full duplex process a byte is sent and received
+on every transaction.
+Because of this some values are ignored in certain situations.
+For example, during a read operation, the address is sent
+first, then a second byte must be sent in order to get
+the received value.
+The second value sent is ignored and could be any value.
 
-For the second byte it depends on whether it is a read or
-a write operation.
-For a read any data can be sent and the value read will be
-returned.  This in analogous to a printer "form feed".
-For a write the data to be written must be sent as the second
-byte.
-The value returned should be ignored.
+For a detailed timing diagram of the read and write operations refer
+to Figures \ref{fig:spi_read} and \ref{fig:spi_write}.
 
 \begin{figure}
 \center
@@ -383,11 +407,11 @@ The value returned should be ignored.
 \caption{Timing diagram of SPI read cycle.
 Part (a) is the first 8-bits and part (b) is the second
 8-bits continuing from (a).
-Notice in part (a) where the ADDRESS is set and READ\_N becomes active (low).
+Notice in part (a) where the ADDRESS is valid and READ\_N becomes active (low).
 The data is not immediately read but instead it is delayed until
 the negative edge of the SCK.
-This is necessary for device such as RAM chips which may not produce
-valid data until a short time delay.}
+This is necessary for device such as RAM chips which may
+require a short period of time to produce valid data.}
 \label{fig:spi_read}
 \end{figure}
 
@@ -414,31 +438,43 @@ Since the clock speed of the SPI is on the order of kHz and the
 clock inside the CPLD is on the order of MHz there should be plenty
 of time for any memory timings or other operations to be done.
 
-\begin{figure}
-\center
-\includegraphics[scale=0.8]{figure/arm-state_diagram/arm-state_diagram}
-\caption{State diagram of ARM board operation.
-The suffixes \_1 and \_2 refer to the first and second bytes
-sent/received over SPI.
-The states display\_results, enter\_data and enter\_cmd 
-wait for the user set the input switches as necessary and then press
-the user button.
-read\_cmd reads the input switches to get the command (address and rw bit).
-If the command is a write read\_data reads the switches again to get the data.
-And execute performed the read/write command.
-}
-\label{fig:armstate}
-\end{figure}
+\clearpage
 
 % }}}
 
 % {{{ User Interface
 \section{User Interface}
 
-The user interface is derived from the state diagram
-for the ARM as shown in Figure \ref{fig:armstate}.
-But there are fewer states that the user must be concerned
-with.
+In order for the user to be able to perform read and write
+operations to the bus devices an interface needs to be defined.
+The only means of input is using an eight position DIP switch.
+Outputs are provided by an LCD, a bar of eight LEDS,
+and a group of eight LEDs on board the CPLD.
+
+The bar of LEDs and the group of LEDs on the CPLD both operate
+similarly.
+They act as an eight bit register which can be read from and written to.
+Refer to Table \ref{tbl:memmap} for their specific addresses.
+
+The LCD is the primary means of user feedback.
+It instructs the user when to enter a command or data and
+it displays the results.
+Figure \ref{fig:armstate} gives an overview of the states of
+the system.
+
+\begin{figure}
+\center
+\includegraphics[scale=0.8]{figure/arm-state_diagram/arm-state_diagram}
+\caption{State diagram of ARM board operation.
+The states 'display\_results', 'enter\_cmd' and 'enter\_data'
+wait for the user set the input switches as necessary and then press
+the user button.
+'read\_cmd' reads the input switches to get the command (address and rw bit).
+If the command is a write 'read\_data' reads the switches again to get the data.
+And 'execute' performs the read/write command.
+}
+\label{fig:armstate}
+\end{figure}
 
 As an example of reading the switches.
 Notice that the only difference is the inclusion of the
@@ -450,13 +486,8 @@ CMD
 \end{verbatim}
 
 Refer to the memory map (Table \ref{tbl:memmap}) for
-examples of other address that can be read from and written
+a complete list of the addresses that can be read from and written
 to.
-
-% }}}
-
-% {{{ Bus Interface
-\section{Bus Interface}
 
 % }}}
 
