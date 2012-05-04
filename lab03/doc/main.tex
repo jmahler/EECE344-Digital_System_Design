@@ -61,18 +61,34 @@ over SPI by an ARM STM32L Discovery\cite{UM1079} board.
 
 % }}}
 
-% {{{ Pin Assignments
-\section{Pin Assignments}
+% {{{ Pin Assignments, Schematics
+\section{Pin Assignments, Schematics}
 \label{sec:pa}
 
-One of the critical design specifications for this device are
-the pin assignments.
-Table \ref{tbl:pins} lists the connections that were used.
-Keep in mind that these assignments are specific to this
-design and their choice was somewhat arbitrary.
-Other pins, such as those for the SPI on the ARM (PA5, PA12, PA11),
-cannot be changed due conflicts with other resources on the board.
+The pin assignments define all the interconnecting wires
+between the ARM, CPLD and other components.
 
+% describe the pin meanings
+To locate a pin on the CPLD requires two designations\citep[Pg. 11-14]{EB66}.
+The first is the header which has names such as J9, J7, etc.
+And the second is the number of the pin.
+The board will have pin numbers at the begining and end of a header
+to denote the orientation.
+
+On the CPLD the pins correspond to headers (J9, J7, etc)
+and pins within those headers\citep[Pg. 11-14]{EB66}.
+The header and pin numbers are printed at the end of each header.
+
+When specifiying the pin constraints in Diamond\cite{Diamond}
+the header and pin number are not available.
+Instead the "Mach XO Ball" must be specified.
+And this value is included in the following pin assignments.
+
+The pin assignments are given in Tables
+\ref{tbl:ramcommon}, \ref{tbl:rampinsuniq}, \ref{tbl:pins}
+as well as the schematic in Figure \ref{fig:ram_to_cpld}.
+
+% {{{ RAM common Table
 \begin{table}
 \center
 \begin{tabular}{|l|l|l|l|l|l|l|}
@@ -141,8 +157,11 @@ which are common to both chips.
 See Table \ref{tbl:rampinsuniq} for those pins which are
 unique for each chip.
 }
+\label{tbl:ramcommon}
 \end{table}
+% }}}
 
+% {{{ RAM unique Table
 \begin{table}
 \center
 
@@ -184,7 +203,15 @@ unique for each chip.
 which are unique to each RAM chip.}
 \label{tbl:rampinsuniq}
 \end{table}
+% }}}
 
+\begin{figure}
+\center
+\includegraphics[scale=0.7]{figure/schematics/RAM_to_CPLD}
+\caption{Schematic diagram of wires between both RAM chips and
+the CPLD.}
+\label{fig:ram_to_cpld}
+\end{figure}
 
 \begin{table}
 \center
@@ -205,8 +232,7 @@ which are unique to each RAM chip.}
 \label{tbl:memmap}
 \end{table}
 
-
-% TODO - break each in to own table
+% {{{ pins Table
 \begin{table}
 	\center
 	\begin{tabular}{|l|l|l|l|l|l|l|}
@@ -287,15 +313,7 @@ which are unique to each RAM chip.}
         }
 	\label{tbl:pins}
 \end{table}
-
-% describe the pin meanings
-On the CPLD the pins correspond to headers (J9, J7, etc)
-and pins within those headers\citep[Pg. 11-14]{EB66}.
-The header and pin numbers are printed at the end of each header.
-The "Mach XO Ball" is used to identify the location on the
-chip itself.
-This is used for assigning pins when configuring the CPLD
-using Diamond\cite{Diamond}.
+% }}}
 
 % configuring using Diamond
 The pins were configured with standard options:
