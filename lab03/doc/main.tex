@@ -213,6 +213,13 @@ the CPLD.}
 \label{fig:ram_to_cpld}
 \end{figure}
 
+\begin{figure}
+\center
+\includegraphics[scale=0.7]{figure/schematics/SPI_LEDs_SW}
+\caption{Schematic diagram of wires between the ARM and the CPLD.}
+\label{fig:arm_to_cpld}
+\end{figure}
+
 \begin{table}
 \center
 \begin{tabular}{|l|l|l|}
@@ -250,7 +257,6 @@ the CPLD.}
 		NSS & SPI slave select & PB5 & PR4C & F13 & J7 & 1 \\
 		MOSI & SPI master out slave in & PA12 & PR4D & F12 & J7 & 3 \\
 		MISO & SPI master in slave out & PA11 & PR5C  & B16 & J7 & 5 \\
-		     & ground                  & GND  &       &     & J8 & 5 \\
 		\hline
 		\multicolumn{7}{|c|}{\textbf{switches}} \\
 		\hline
@@ -291,6 +297,7 @@ the CPLD.}
 		bar\_leds[5] & output led 3 & 3 & PT12D & B12  & J5 & 28 \\
 		bar\_leds[6] & output led 2 & 2 & PT16C & A5   & J5 & 29 \\
 		bar\_leds[7] & output led 1 & 1 & PT13C & C11  & J5 & 30 \\
+		          & power, Vdd, pull up &      &     &    & J9 & 1 \\
 		          & ground &  & & & J6 & 16 \\
 		\hline
 		\multicolumn{7}{|c|}{\textbf{reset}} \\
