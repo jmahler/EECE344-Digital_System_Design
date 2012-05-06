@@ -8,16 +8,6 @@ module GSR(output GSR);
     assign GSR = 1'b1;
 endmodule
 
-module OSCC(output reg OSC);
-    initial begin
-        OSC = 0;
-    end
-
-    always begin
-        #1 OSC = ~OSC;
-    end
-endmodule
-
 module test;
 
     reg           sck,
@@ -58,7 +48,7 @@ module test;
         sck = 0;
 
         // The time delays in this section are slower (#10)
-        // relative to the OSC clock (#1).
+        // relative to the OSC clock (#1) (if used).
         // On a real board the magnitudes would be much larger
         // (kHz to MHz) so this is a worst case situation.
         // Currently this is only important for the memory modules.

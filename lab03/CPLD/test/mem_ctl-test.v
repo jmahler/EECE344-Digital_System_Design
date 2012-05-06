@@ -17,7 +17,7 @@ module test;
 	wire        we_n;
 	wire        oe_n;
 
-	mem_ctl mem1(read_n, write_n, ce_n, clk, address_bus, data_bus, mem_data,
+	mem_ctl mem1(read_n, write_n, ce_n, address_bus, data_bus, mem_data,
                     mem_address, ceh_n, ce2, we_n, oe_n);
 
 	reg [7:0] write_data_bus;

@@ -49,9 +49,6 @@ module main(
 
 	GSR GSR_INST(.GSR(reset_n));
 
-    wire clk;
-	OSCC OSCC_1(.OSC(clk)) ;
-
     wire bar_led_ce_n,
          board_led_ce_n,
          switch_ce_n,
@@ -71,11 +68,11 @@ module main(
 
 	switch_ctl sw1(read_n, switch_ce_n, data, switches);
 
-	mem_ctl mem1(read_n, write_n, mem1_ce_n, clk, address, data,
+	mem_ctl mem1(read_n, write_n, mem1_ce_n, address, data,
                 mem_data, mem_address, mem1_ceh_n, mem1_ce2, mem1_we_n,
                 mem1_oe_n);
 
-	mem_ctl mem2(read_n, write_n, mem2_ce_n, clk, address, data,
+	mem_ctl mem2(read_n, write_n, mem2_ce_n, address, data,
                 mem_data, mem_address, mem2_ceh_n, mem2_ce2, mem2_we_n,
                 mem2_oe_n);
 
