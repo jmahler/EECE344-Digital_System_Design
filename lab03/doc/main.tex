@@ -41,20 +41,14 @@
 
 \centerline{\Large \textbf{Bus Communications Over SPI}}
 \vspace{2em}
-\centerline{\small \textbf{EECE 344, Lab \#3, Spring 2012, CSU Chico}}
+\centerline{\small \textbf{EECE 344, Spring 2012, CSU Chico}}
 \vspace{0.5em}
 \centerline{\small \textbf{Jeremiah Mahler \href{mailto:jmahler@mail.csuchico.edu}{jmahler@mail.csuchico.edu}}}
 \vspace{2em}
 
-
-%\title{Lab 3 (EECE 344)}
-%\date{March 24, 2012}
-%\author{Jeremiah Mahler}
-%\maketitle
 % }}}
 
 %\tableofcontents
-
 %\pagebreak
 
 % {{{ Introduction
@@ -134,6 +128,7 @@ to ensure only one is driving the bus at any given time (Figure \ref{fig:bus}).
 
 % {{{ SPI protocol
 \section{SPI protocol}
+\label{sec:spi}
 
 Since the ARM cannot connect directly to the bus the SPI
 is used as a communication channel.
@@ -566,6 +561,47 @@ Table \ref{tbl:pins} lists the pins that were used.
 % {{{ Conclusion
 \section{Conclusion}
 % difficulties
+
+% debugging
+The problems that occurred during development were numerous and intricate.
+Without a full arsenal of debugging techniques this project is nearly impossible.
+For the simple problems "trial and error" could be used but more
+often this was impractical.
+A Verilog simulator, such as Icarus Verilog\cite{VERILOG}, reduced testing
+times although it was not as strict as when the code is actually synthesized.
+A logic analyzer with a minimum of four channels was invaluable for
+diagnosing errors with SPI communications such as glitches and shifts.
+A C debugger was crucial for stepping through the ARM code
+to verify that it is behaving as expected.
+And Diamond provides a debugger for the CPLD which could have
+been helpful if it was easier to get working.
+
+% HDL programming
+The HDL code used to program the CPLD was written in Verilog.
+While Verilog is a rich language with numerous
+capabilities\cite{thomas2002verilog} only a small fraction of it
+can be synthesized in to functional code.
+It was often trivial to devise a solution but the code had to be significantly
+modified in order to get it to synthesize.
+For example, suppose it was desired to increment a variable on the rising
+edge and falling edge of a clock.
+The Verilog simulator (Icarus)  will allow this but it wont synthesize
+because it cannot be turned in to a flip flop.
+As another example, suppose it was desired to reset all the variables on
+a starting of NSS, and then during SCK edges modify these variables.
+Again this will be allowed in the simulator but it is not synthesizeable
+because two different always blocks cannot modify the same variable.
+
+And the information on synthesis errors is often obscure.
+In some cases all that is provided is a code and a terse message.
+Using the Synplify tool a more detailed description can be found.
+And they provide examples of code which causes the error along with
+how the code can be changed to eliminate the error.
+But the behavior of changed code is often not functionally equivalent.
+
+% was it a success?
+While this project was a success in developing bus communications over SPI
+it was far more difficult than expected.
 
 % }}}
 
