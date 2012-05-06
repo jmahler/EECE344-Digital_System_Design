@@ -48,7 +48,7 @@ module mem_ctl(
     // for WRITE
     assign mem_data = (~(ce_n | write_n | ~read_n)) ? data_bus : 8'bz;
 
-    // Not "timing" is required for the control lines.
+    // No "timing" is required for the control lines.
     // This just follows the truth table given on page 3 of
     // the Alliance RAM data sheet.
 
