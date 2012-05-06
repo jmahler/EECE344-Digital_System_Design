@@ -52,10 +52,6 @@ module spi_ctl(
 
 	reg mosi_sample;
 
-    reg rw;
-    parameter READ = 1'b1,
-              WRITE = 1'b0;
-
     // drive the data bus for a write, high Z otherwise
     reg [7:0] write_data_bus;
     assign data_bus = (~(write_n | ~read_n)) ? write_data_bus : 8'bz;
@@ -86,7 +82,7 @@ module spi_ctl(
     // SAMPLE
     always @(posedge sck, posedge nss) begin
         // defaults
-        count          <= 1;
+        count <= 1;
 
         if (nss) begin
             // end of second byte
@@ -107,13 +103,14 @@ module spi_ctl(
 
                 // we got the 7-bit address and rw bit
                 address_bus <= {r_reg[5:0], mosi};
-                rw          <= r_reg[6];
 
-                if (r_reg[6] == READ)
-                    read_n <= 1'b0; // disable
-            end else if (15 == count && rw == 1'b0) begin
+                // if (READ)
+                if (r_reg[6] == 1'b1)
+                    read_n <= 1'b0; // enable
+            end else if (15 == count && read_n == 1'b1) begin
                 // (WRITE), got the second byte, setup to write it to the bus
-                write_data_bus <= r_next;
+                write_data_bus <= {r_reg[6:0], mosi};
+                // can't use r_next here because we need mosi
             end
         end
     end
@@ -134,14 +131,14 @@ module spi_ctl(
                 write_n <= 1'b1; // disable
             end else if (8 == count) begin
                 // if (READ), load the data to be sent back
-                if (rw == READ)
+                if (1'b0 == read_n)
                     r_reg <= data_bus;
             end else if (16 == count) begin
                 // end of second byte
 
                 // if (WRITE), enable write.
                 //  (the enabled device will drive the bus)
-                if (rw == WRITE)
+                if (read_n == 1'b1)
                     write_n <= 1'b0; // enable
             end
         end

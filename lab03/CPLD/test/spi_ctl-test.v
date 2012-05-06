@@ -41,7 +41,7 @@ module test;
         #2;
 
         /*
-         * Given below are examples of a read cylcle and a write cycle.
+         * Given below are examples of a read cycle and a write cycle.
          * Either or both can be uncommented to test their functionality.
          * Each section contains comments that describe what
          * values to look for (in Gtkwave) if it is operating properly.
@@ -49,7 +49,6 @@ module test;
 
         // *** EXAMPLE #1: WRITE CYCLE ***
 
-        /*
 		#1 nss = 0; // enabled
 
         //
@@ -79,12 +78,11 @@ module test;
 		SPI_once();
 
 		#1 nss = 1; // disabled
-        */
 
         // *** END EXAMPLE #1 ***
 
         // *** EXAMPLE #2: READ CYCLE ***
-
+        /*
 		#1 nss = 0; // enabled
 
         // What to look for?
@@ -139,7 +137,7 @@ module test;
 		#1 nss = 1; // disabled
 
         // *** END EXAMPLE #2 ***
-
+        */
 		#3 $finish;
 	end
 

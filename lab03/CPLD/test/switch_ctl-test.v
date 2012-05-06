@@ -17,37 +17,27 @@ module test;
         // start disabled
         ce_n = 1'b1;
         read_n = 1'b1;
-        switches = 8'hAA;
+        switches = 8'hAA; // manually specify the value
+                          // we should read this value
 
-        #1;
-
-        // For all these various combinations of enable/disable
-        // data should only be driven when both ce_n and read_n are low.
+        // should see:
+        //   data == high Z
 
         // enable
         #1 ce_n = 1'b0;
         #1 read_n = 1'b0;
 
-        // disable
-        #1 ce_n = 1'b1;
-        #1 read_n = 1'b1;
-
-        // enable in different order
-        #1 read_n = 1'b0;
-        #1 ce_n = 1'b0;
+        // should see:
+        //   sw1.data == ~(0xAA) -> 0x55
 
         // disable
         #1 ce_n = 1'b1;
            read_n = 1'b1;
 
-        #1 read_n = 1'b0;
-           ce_n = 1'b0;
+        // should see:
+        //   data == high Z
 
-        // disable
-        #1 ce_n = 1'b1;
-           read_n = 1'b1;
-
-        $finish;
+        #1 $finish;
 	end
 
 endmodule

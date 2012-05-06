@@ -30,6 +30,10 @@ module led_ctl(
     inout      [7:0] data,
     output reg [7:0] leds);
 
+    // ~(leds) and ~(data) are used to invert the inputs/outputs
+    // to compensate for actual pull up circuit which inverts the
+    // value.
+
     // READ
     // If we are enabled (ce_n lo) and read is enabled (read_n lo)
     // and write is not enabled (write_n hi)
@@ -49,7 +53,7 @@ module led_ctl(
     // write the data to the leds.
     always @(negedge reset_n, posedge write_ce_n) begin
         if (~reset_n)
-            leds <= 8'h00;
+            leds <= ~(8'h00);
         else
             leds <= ~(data);
     end

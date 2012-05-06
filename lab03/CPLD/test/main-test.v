@@ -102,7 +102,6 @@ module test;
 
         // {{{ *** EXAMPLE #2, write bar leds ***
         // tested OK [jmm]  Wed, 02 May 2012 19:20:39 -0700
-
         #10 nss = 0; // enable
 
         // ADDRESS to write (rw bit left at 0 for WRITE)
@@ -113,20 +112,19 @@ module test;
         //
         // At the END of the SECOND byte:
         //
-        //   - leds should have the value 0x73
-        //   - when write_ce_n is low, data should be 0x73
+        //   - leds should have the value ~(0x6D)
+        //   - when write_ce_n is low, data should be 0x6D
         //   - when write_ce_n becomes disabled, data should go high z
         //
-        w_mosi = 8'h73;
+        w_mosi = 8'h6D;
         SPI_once();
 
         #10 nss = 1; // disable
-
         // *** END EXAMPLE #2 *** }}}
-
 
         // {{{ *** EXAMPLE #3, read bar leds ***
 
+        /*
         #10 nss = 0;  // enabled
 
         //
@@ -146,6 +144,7 @@ module test;
         SPI_once();
 
         #10 nss = 1; // disable
+        */
         // *** END EXAMPLE #3 *** }}}
 
         #10 $finish;
