@@ -102,6 +102,7 @@ module test;
 
         // {{{ *** EXAMPLE #2, write bar leds ***
         // tested OK [jmm]  Wed, 02 May 2012 19:20:39 -0700
+        /*
         #10 nss = 0; // enable
 
         // ADDRESS to write (rw bit left at 0 for WRITE)
@@ -120,6 +121,7 @@ module test;
         SPI_once();
 
         #10 nss = 1; // disable
+        */
         // *** END EXAMPLE #2 *** }}}
 
         // {{{ *** EXAMPLE #3, read bar leds ***
@@ -147,7 +149,31 @@ module test;
         */
         // *** END EXAMPLE #3 *** }}}
 
-        #10 $finish;
+        // {{{ *** EXAMPLE #4, write memor (RAM) ***
+
+        #10 nss = 0;  // enabled
+
+        //
+        // At the END of the FIRST byte:
+        //   - the value stored in 'leds' should be driven on to 'data'
+        //
+
+        // CMD: write first chip at address 0x00
+        w_mosi = 8'h00;
+        SPI_once();
+
+        // At the END of the SECOND byte:
+        //  - the 'data' should go high z
+        //
+
+        // data to write
+        w_mosi = 8'h3D;
+        SPI_once();
+
+        #10 nss = 1; // disable
+        // *** END EXAMPLE #4 *** }}}
+
+        #20 $finish;
 	end
 
     // {{{ SPI_once() 

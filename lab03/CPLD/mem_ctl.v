@@ -28,7 +28,7 @@ module mem_ctl(
 
 	inout      [7:0]  mem_data,
 	output     [16:0] mem_address,
-    output reg        ceh_n,
+    output wire       ceh_n,
                       ce2,
                       we_n,
                       oe_n);
@@ -59,6 +59,18 @@ module mem_ctl(
 	// It is assumed that the data and address have already been
 	// established.  The following just goes through the timing cycle.
 
+    // (from "truth table")
+    assign ceh_n = 1'b0;
+    assign ce2   = 1'b1;
+
+    // for READ
+    assign oe_n = (~(ce_n | read_n)) ? 1'b0 : 1'b1;
+
+    // for WRITE
+    assign we_n = (~(ce_n | write_n | ~read_n)) ? 1'b0 : 1'b1;
+
+
+    /*
     parameter [2:0]
         START  = 0,
         READ2  = 1,
@@ -109,5 +121,6 @@ module mem_ctl(
             end
         end
     end
+        */
 endmodule
 
