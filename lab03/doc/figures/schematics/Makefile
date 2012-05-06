@@ -1,5 +1,5 @@
 
-PDFs = SPI_LEDs_SW.pdf RAM_to_CPLD.pdf
+PDFs = SPI_LEDs_SW.pdf RAM_to_CPLD.pdf BUS.pdf
 
 all: $(PDFs)
 
