@@ -55,7 +55,7 @@
 \section{Introduction}
 
 A bus is used to allow communication with multiple devices
-over a shared set wires.
+over a shared set of wires.
 The Serial Peripheral Interface (SPI) provides a means
 for transferring data between two devices.
 This project shows how an ARM board can communicate over
@@ -79,9 +79,29 @@ module.
 And all the components which are on the bus are controlled by the
 CPLD.
 Arrows designate input/output and if there are none it is bidirectional.
+Refer to table \ref{tbl:memmap} for the specific address used.
 }
 \label{fig:bus}
 \end{figure}
+
+\begin{table}[hbp]
+\center
+\begin{tabular}{|l|l|}
+    \hline
+    \multicolumn{2}{|c|}{\textbf{Memory Map}} \\
+    \hline
+    address (hex) & name \\
+    \hline
+    0x74 & switches \\
+    0x6C & bar leds \\
+    0x50 - 0x5F & RAM \#2 \\
+    0x2F & board leds \\
+    0x00 - 0x0F & RAM \#1 \\
+    \hline
+\end{tabular}
+\caption{Device memory map.}
+\label{tbl:memmap}
+\end{table}
 
 %\begin{figure}[hbp]
 %\center
@@ -428,25 +448,6 @@ the CPLD.}
 \label{fig:arm_to_cpld}
 \end{figure}
 
-\begin{table}[hbp]
-\center
-\begin{tabular}{|l|l|l|}
-    \hline
-    \multicolumn{3}{|c|}{\textbf{Memory Map}} \\
-    \hline
-    address (hex) & name & variable \\
-    \hline
-    0x74 & switches & switch\_ce\_n \\
-    0x6C & bar leds & bar\_led\_ce\_n \\
-    0x50 - 0x5F & RAM \#2 & mem2\_ce\_n \\
-    0x2F & board leds & board\_led\_ce\_n \\
-    0x00 - 0x0F & RAM \#1 & mem1\_ce\_n \\
-    \hline
-\end{tabular}
-\caption{Device memory map.}
-\label{tbl:memmap}
-\end{table}
-
 % {{{ pins Table
 \begin{table}
 	\center
@@ -564,17 +565,42 @@ Table \ref{tbl:pins} lists the pins that were used.
 
 % }}}
 
-% {{{ Conclusion
-\section{Conclusion}
-% difficulties
+% {{{ Development
+\section{Development}
+
+While the end result of this project is simple its development
+was far from easy.
+
+% sythesis
+All the code to control the CPLD was written in Verilog.
+While Verilog is a rich language with numerous
+capabilities\cite{thomas2002verilog} only a small fraction of it
+can be synthesized in to functional code.
+It was often trivial to devise a solution
+but the code had to be significantly reworked in order to get it to
+synthesize\footnote{The term "synthesize" is used to describe when
+the Verilog code is processed under strict rules by a program such
+as Diamond or Synplify.  Simulating the code under Icarus Verilog
+is not considered "synthesizing" because it is far less strict.}.
+
+As an example of one of one of the common synthesis problems,
+suppose it was desired to increment a variable on the rising
+edge and falling edge of a clock.
+The Verilog simulator (Icarus) will allow this and it will simulate
+properly.
+But this code can't be synthesized because it can't be turned in to a flip flop.
+
+As another example, suppose it was desired to reset all the variables on
+a falling edge of the NSS signal, and then mutate the variables during
+subsequent rising edges of the SCK signal.
+Again this will simulate properly but it cannot be synthesized because
+two different always blocks cannot modify the same variable.
 
 % debugging
 The problems that occurred during development were numerous and intricate.
 Without a full arsenal of debugging techniques this project is nearly impossible.
 For the simple problems "trial and error" could be used but more
 often this was impractical.
-A Verilog simulator, such as Icarus Verilog\cite{VERILOG}, reduced testing
-times although it was not as strict as when the code is actually synthesized.
 A logic analyzer with a minimum of four channels was invaluable for
 diagnosing errors with SPI communications such as glitches and shifts.
 A C debugger was crucial for stepping through the ARM code
@@ -582,32 +608,17 @@ to verify that it is behaving as expected.
 And Diamond provides a debugger for the CPLD which could have
 been helpful if it was easier to get working.
 
-% HDL programming
-The HDL code used to program the CPLD was written in Verilog.
-While Verilog is a rich language with numerous
-capabilities\cite{thomas2002verilog} only a small fraction of it
-can be synthesized in to functional code.
-It was often trivial to devise a solution but the code had to be significantly
-modified in order to get it to synthesize.
-For example, suppose it was desired to increment a variable on the rising
-edge and falling edge of a clock.
-The Verilog simulator (Icarus)  will allow this but it wont synthesize
-because it cannot be turned in to a flip flop.
-As another example, suppose it was desired to reset all the variables on
-a starting of NSS, and then during SCK edges modify these variables.
-Again this will be allowed in the simulator but it is not synthesizeable
-because two different always blocks cannot modify the same variable.
+% }}}
 
-And the information on synthesis errors is often obscure.
-In some cases all that is provided is a code and a terse message.
-Using the Synplify tool a more detailed description can be found.
-And they provide examples of code which causes the error along with
-how the code can be changed to eliminate the error.
-But the behavior of changed code is often not functionally equivalent.
+% {{{ Conclusion
+\section{Conclusion}
+% difficulties
 
 % was it a success?
-While this project was a success in developing bus communications over SPI
-it was far more difficult than expected.
+While this project was a success in creating bus communications over SPI
+its development was far more difficult than expected.
+Writing synthesizeable Verilog code and debugging the numerous intricate
+problems were the biggest hindrances to a timely completion of this project.
 
 % }}}
 
