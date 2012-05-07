@@ -3,3 +3,4 @@ switch_ctl-test
 spi_ctl-test
 mem_ctl-test
 led_ctl-test
+main-test
