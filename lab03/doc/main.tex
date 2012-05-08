@@ -45,6 +45,7 @@
 \vspace{0.5em}
 \centerline{\small \textbf{Jeremiah Mahler \href{mailto:jmahler@mail.csuchico.edu}{jmahler@mail.csuchico.edu}}}
 \vspace{2em}
+\thispagestyle{empty}
 
 % }}}
 
@@ -274,18 +275,31 @@ And 'execute' performs the read/write command.
 \label{fig:armstate}
 \end{figure}
 
-As an example of reading the switches.
-Notice that the only difference is the inclusion of the
-rw bit as part of the data value whereas the address
-is only 7-bits and excludes this part.
-\begin{verbatim}
-CMD
-74 R F4
-\end{verbatim}
+As an example the following dialog shows how to read from
+the switches.
+At each step the USER button is pressed to proceed to the next step.
+A value of '--' is used to denote when the switches have no bearing
+on the results.
 
-Refer to the memory map (Table \ref{tbl:memmap}) for
-a complete list of the addresses that can be read from and written
-to.
+\begin{tabular}{l l l}
+LCD & switches & description \\
+\hline
+\verb+CMD+ & 0xFF & read from address 0x74 (switches) \\
+\verb+74 R F4+ & -- & the value 0xF4 was read from address 0x74 \\
+\end{tabular}
+
+As another example the following shows how to write to the external LEDs.
+
+\begin{tabular}{l l l}
+LCD & switches & description \\
+\hline
+\verb+CMD+  & 0x6C & write to address 0x6C (bar leds) \\
+\verb+DATA+ & 0x35 & the data 0x35 will be written to the address \\
+\verb+6C W 35+ & -- & value 0x35 was written to address 0x6C
+\end{tabular}
+
+A identical procedure can be performed to read/write to any
+of the addresses in the memory map (Table \ref{tbl:memmap}).
 
 % }}}
 
@@ -597,7 +611,8 @@ Again this will simulate properly but it cannot be synthesized because
 two different always blocks cannot modify the same variable.
 
 % debugging
-The problems that occurred during development were numerous and intricate.
+Beyond synthesis errors there seemed to be an endless supply of problems
+which were quite intricate and difficult to diagnose.
 Without a full arsenal of debugging techniques this project is nearly impossible.
 For the simple problems "trial and error" could be used but more
 often this was impractical.
@@ -605,8 +620,24 @@ A logic analyzer with a minimum of four channels was invaluable for
 diagnosing errors with SPI communications such as glitches and shifts.
 A C debugger was crucial for stepping through the ARM code
 to verify that it is behaving as expected.
-And Diamond provides a debugger for the CPLD which could have
-been helpful if it was easier to get working.
+
+An example of one of the problems that had to be diagnosed were
+glitches on the SPI.
+This normally first appears as incorrect or erratic values being
+received by the master (MISO).
+Using a logic analyzer this problem can be clearly seen by spikes
+which rise and fall at a single clock edge.
+If it is operating normally it should only rise or fall at a single clock edge.
+The next logical step was to investigate the CPLD since it is driving the
+output.
+With the MISO signal wire disconnected from the ARM it will be seen that
+the wire is being driven properly and there are no glitches.
+But how can the ARM disrupt the signal if it is only an input?
+While it is not exactly clear how this signal is disrupted, it is caused
+by the GPIO sample speed being configured for too slow of a speed.
+A trial and error approach to this problem would have been nearly impossible.
+Only by using a methodical approach along with the proper tools was this
+problem able to be solved in a practical amount of time.
 
 % }}}
 
