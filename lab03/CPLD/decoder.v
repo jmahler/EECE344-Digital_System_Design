@@ -11,6 +11,9 @@
  * to map the 7-bit addresses to the following
  * active low enable signals.
  *
+ * Full address decoding is used so devices cannot
+ * be inadvertly addressed using out of bounds addresses.
+ *
  *    address (hex) | device
  *  ----------------+---------------
  *   0x74           | switch_ce_n

@@ -63,12 +63,12 @@ This project shows how an ARM board can communicate over
 SPI to a CPLD which defines a bus.
 Figure \ref{fig:bus} gives an overview.
 
-There are two main components used in this project which
-will be referred to in an abbreviated form throughout this document.
+There are two main components of this project which
+will be referred to in an abbreviated form for the remainder of this document.
 The term "ARM" will refer to the ARM STM32L Discovery\cite{UM1079} board.
 And the term "CPLD" will refer to the Lattice MachXO\cite{EB66}
 CPLD board.
-This project is specific to these development boards although it
+This design is specific to these development boards although it
 may be possible to substitute others with some modification.
 
 \begin{figure}[hbp]
@@ -80,7 +80,7 @@ module.
 And all the components which are on the bus are controlled by the
 CPLD.
 Arrows designate input/output and if there are none it is bidirectional.
-Refer to table \ref{tbl:memmap} for the specific address used.
+Refer to table \ref{tbl:memmap} for the specific address of these devices.
 }
 \label{fig:bus}
 \end{figure}
@@ -131,7 +131,7 @@ For a write cycle the first step is to drive the address value.
 Then the device is enabled and some time later write is enabled.
 At this point the data should be driven by the bus master
 but it will take some time to become valid.
-At the end of the write strobe, before it is disabled,
+At the end of the write cycle, before it is disabled,
 the data should be latched by the device.
 Figure \ref{fig:bus_cycle} (b) shows this write cycle.
 
@@ -148,8 +148,9 @@ Figure \ref{fig:bus_cycle} (b) shows this write cycle.
 \label{fig:bus_cycle}
 \end{figure}
 
-A decoder will be used to control the chip enable for all the components
-to ensure only one is driving the bus at any given time (Figure \ref{fig:bus}).
+A decoder is used to control the chip enable of each device
+to ensure only one is driving the data bus at any given time.
+It is defined according to the memory map in Table \ref{tbl:memmap}.
 
 % }}}
 
@@ -165,7 +166,7 @@ A read, for example, would send the address in the first transaction.
 And in the second transaction the data read would be returned.
 A write is similar except that for the second transaction the
 data to be written is sent.
-The format of the bytes for each transaction is shown in Table \ref{tbl:spiformat}.
+The format of the these two bytes is shown in Table \ref{tbl:spiformat}.
 
 \begin{table}[hbp]
 \center
@@ -184,7 +185,7 @@ rw bit & \multicolumn{2}{|c|}{address} \\
 Note, this implementation is configured with the SPI settings
 shown in Table \ref{tbl:spi}.
 Both the ARM and the CPLD must use these same settings in order
-to work properly with each other.
+to work properly.
 
 \begin{table}
 \center
@@ -203,13 +204,10 @@ to work properly with each other.
 \end{table}
 
 In order to perform a read/write the timing of the bus operations
-(Figure \ref{fig:bus_cycle}) needs to be integrated in to the
+(Figure \ref{fig:bus_cycle}) needs to be integrated with the
 timing of SPI operations.
-The result is showing in Figure \ref{fig:spi_read} for the
+The result is shown in Figure \ref{fig:spi_read} for the
 read operation and in Figure \ref{fig:spi_write} for the write.
-
-For a detailed timing diagram of the read and write operations refer
-to Figures \ref{fig:spi_read} and \ref{fig:spi_write}.
 
 \begin{figure}
 \center
@@ -232,7 +230,7 @@ Part (a) is the first 8-bits and part (b) is the second
 \caption{Timing diagram of SPI write cycle.
 Part (a) is the first 8-bits and part (b) is the second
 continuing from (a).
-A write is not initiated until the end of the
+A write on the bus is not initiated until the end of the
 second byte because it has to read this byte entirely before it can be written.}
 \label{fig:spi_write}
 \end{figure}
@@ -278,8 +276,8 @@ And 'execute' performs the read/write command.
 As an example the following dialog shows how to read from
 the switches.
 At each step the USER button is pressed to proceed to the next step.
-A value of '--' is used to denote when the switches have no bearing
-on the results.
+A value of '--' is used to denote when the value of the switches have
+no bearing on the results.
 
 \begin{tabular}{l l l}
 LCD & switches & description \\
@@ -299,7 +297,10 @@ LCD & switches & description \\
 \end{tabular}
 
 A identical procedure can be performed to read/write to any
-of the addresses in the memory map (Table \ref{tbl:memmap}).
+of the addresses in the memory map (Table \ref{tbl:memmap})
+\footnote{Not all devices support all operations.  The switches for example
+do not support writing.  The decoder is implemented using full
+address decoding so inadvertent access is not possible.}.
 
 % }}}
 
@@ -317,14 +318,10 @@ And the second is the number of the pin.
 The board will have pin numbers at the beginning and end of a header
 to denote the orientation.
 
-On the CPLD the pins correspond to headers (J9, J7, etc)
-and pins within those headers\citep[Pg. 11-14]{EB66}.
-The header and pin numbers are printed at the end of each header.
-
-When specifying the pin constraints in Diamond\cite{Diamond}
-the header and pin number are not available.
+When programming the CPLD and specifying the pin constraints
+in Diamond\cite{Diamond} the header and pin number are not available.
 Instead the "Mach XO Ball" must be specified.
-And this value is included in the following pin assignments.
+And this value is included in the tables of pin assignments given here.
 
 The pin assignments are given in Tables
 \ref{tbl:ramcommon}, \ref{tbl:rampinsuniq}, \ref{tbl:pins}
@@ -571,7 +568,7 @@ A value of 300 $\ohm$ is a typical value.
 To reset the boards their reset pins must be configured.
 The ARM board provides a \verb+NRST+ pin which is at Vcc
 when enabled and goes low when the reset button is pushed\cite[Pg. 17, 20]{UM1079}.
-This can then be connected to the CPLD to cause
+This is connected to the CPLD to cause
 it to reset using \verb+GSRN+\citetext{\citealp[Pg. 13, 46, 50, 53]{DS1002}; \citealp[Pg. 8]{EB66}}.
 Table \ref{tbl:pins} lists the pins that were used.
 
@@ -582,7 +579,7 @@ Table \ref{tbl:pins} lists the pins that were used.
 % {{{ Development
 \section{Development}
 
-While the end result of this project is simple its development
+While the end result of this project is simple, its development
 was far from easy.
 
 % sythesis
@@ -600,7 +597,7 @@ is not considered "synthesizing" because it is far less strict.}.
 As an example of one of one of the common synthesis problems,
 suppose it was desired to increment a variable on the rising
 edge and falling edge of a clock.
-The Verilog simulator (Icarus) will allow this and it will simulate
+The Icarus Verilog\cite{VERILOG} simulator will allow this and it will simulate
 properly.
 But this code can't be synthesized because it can't be turned in to a flip flop.
 
@@ -618,7 +615,7 @@ For the simple problems "trial and error" could be used but more
 often this was impractical.
 A logic analyzer with a minimum of four channels was invaluable for
 diagnosing errors with SPI communications such as glitches and shifts.
-A C debugger was crucial for stepping through the ARM code
+And a C debugger was crucial for stepping through the ARM code
 to verify that it is behaving as expected.
 
 An example of one of the problems that had to be diagnosed were
@@ -633,9 +630,9 @@ output.
 With the MISO signal wire disconnected from the ARM it will be seen that
 the wire is being driven properly and there are no glitches.
 But how can the ARM disrupt the signal if it is only an input?
-While it is not exactly clear how this signal is disrupted, it is caused
-by the GPIO sample speed being configured for too slow of a speed.
-A trial and error approach to this problem would have been nearly impossible.
+While it is not exactly clear how this signal is disrupted, the root cause
+was due to the GPIO sample speed on the ARM being configured for too
+slow of a speed.
 Only by using a methodical approach along with the proper tools was this
 problem able to be solved in a practical amount of time.
 
