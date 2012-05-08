@@ -1,7 +1,7 @@
 NAME
 ----
 
- ARM component of Lab 2 for use with the STM32L Discovery
+ ARM component for use with the STM32L Discovery
 
 REQUIREMENTS
 ------------
